@@ -10,59 +10,67 @@
 
 | 阶段 | 名称 | 任务数 | 依赖 | 状态 |
 |------|------|--------|------|------|
-| 0 | 项目脚手架 | 12 | — | ⬜ 待开始 |
+| 0 | 项目脚手架 | 15 | — | ⬜ 待开始 |
 | 1 | 工作站类型 | 8 | 阶段 0 | ⬜ 待开始 |
 | 2 | 工厂信息 | 8 | 阶段 0 | ⬜ 待开始 |
 | 3 | 生产部门 | 9 | 阶段 2 | ⬜ 待开始 |
 | 4 | 生产线 | 10 | 阶段 3 | ⬜ 待开始 |
 | 5 | 工作站 | 11 | 阶段 1, 3, 4 | ⬜ 待开始 |
 | 6 | 部件信息 | 9 | 阶段 1, 5 | ⬜ 待开始 |
-| 7 | 整合与部署 | 6 | 阶段 1–6 | ⬜ 待开始 |
+| 7 | 整合与部署 | 7 | 阶段 1–6 | ⬜ 待开始 |
 
 **推荐执行顺序**: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7
+
+> **架构说明**: 前后端为两个独立项目（`mes-api`、`mes-web`），不使用 monorepo。各自独立安装依赖、构建与部署。
 
 ---
 
 ## 阶段 0: 项目脚手架
 
-> **目标**: 搭好 monorepo，前后端可运行，连通数据库  
-> **验收**: `pnpm dev` 启动成功，`GET /api/v1/health` 返回 200，前端展示侧边栏
+> **目标**: 初始化两个独立项目，分别可运行并联调  
+> **验收**: 两个终端分别启动前后端，`GET /api/v1/health` 返回 200，前端展示侧边栏
 
-### 0.1 Monorepo 初始化
+### 0.1 后端项目 `mes-api`
 
-- [ ] **T0-01** 创建根 `package.json` + `pnpm-workspace.yaml`
-- [ ] **T0-02** 配置根级 scripts: `dev`, `build`, `lint`
-- [ ] **T0-03** 添加 `.gitignore`（node_modules, dist, .env）
-
-### 0.2 后端脚手架 `mes-api`
-
-- [ ] **T0-04** 初始化 Express + TypeScript 项目结构
+- [ ] **T0-01** 创建 `mes-api` 独立项目目录
+  - `package.json`（name: `mes-api`，独立依赖）
+  - `tsconfig.json`
+  - `.gitignore`（node_modules, dist, .env）
+- [ ] **T0-02** 初始化 Express + TypeScript 项目结构
   - `src/index.ts` — 入口，挂载路由、中间件
   - `src/middleware/errorHandler.ts` — 全局错误处理
-  - `.env.example` — `PORT`, `DATABASE_URL`
-- [ ] **T0-05** 配置 Drizzle ORM
+  - `.env.example` — `PORT`, `DATABASE_URL`, `CORS_ORIGIN`
+- [ ] **T0-03** 配置 CORS 中间件（允许 `mes-web` 开发地址跨域）
+- [ ] **T0-04** 配置 Drizzle ORM
   - `drizzle.config.ts`
   - `src/db/index.ts` — pg 连接池
   - 运行 `drizzle-kit introspect` 生成 schema（暂不全量提交）
-- [ ] **T0-06** 实现 `GET /api/v1/health` 路由
+- [ ] **T0-05** 实现 `GET /api/v1/health` 路由
+- [ ] **T0-06** 编写 `mes-api/README.md`（安装、启动、环境变量说明）
 
-### 0.3 前端脚手架 `mes-web`
+### 0.2 前端项目 `mes-web`
 
-- [ ] **T0-07** 初始化 Vite 8 + React 18 + TypeScript 8 项目
-- [ ] **T0-08** 安装配置 Ant Design 5（ConfigProvider 中文）
-- [ ] **T0-09** 配置 TanStack Router
+- [ ] **T0-07** 创建 `mes-web` 独立项目目录
+  - `package.json`（name: `mes-web`，独立依赖）
+  - `tsconfig.json`
+  - `.gitignore`（node_modules, dist, .env）
+- [ ] **T0-08** 初始化 Vite 8 + React 18 + TypeScript 8 项目
+- [ ] **T0-09** 安装配置 Ant Design 5（ConfigProvider 中文）
+- [ ] **T0-10** 配置 TanStack Router
   - `routes/__root.tsx` — 根布局
   - `routes/index.tsx` — 首页重定向
   - 公司架构 6 个子路由（占位页面）
-- [ ] **T0-10** 实现 `src/api/client.ts` fetch 封装
-- [ ] **T0-11** 实现 `AppLayout` 组件
+- [ ] **T0-11** 实现 `src/api/client.ts` fetch 封装（支持 `VITE_API_BASE_URL`）
+- [ ] **T0-12** 实现 `AppLayout` 组件
   - 侧边栏菜单（公司架构 + 6 子项）
   - 顶栏 + 内容区
   - 菜单项与 TanStack Router 联动
+- [ ] **T0-13** 编写 `mes-web/README.md`（安装、启动、环境变量说明）
 
-### 0.4 联调
+### 0.3 联调
 
-- [ ] **T0-12** 配置 Vite proxy `/api` → `localhost:3001`，验证 health 接口
+- [ ] **T0-14** 配置 Vite proxy `/api` → `localhost:3001`
+- [ ] **T0-15** 双终端联调验证：前端通过 proxy 访问 health 接口
 
 ---
 
@@ -74,7 +82,7 @@
 > **依赖**: 阶段 0  
 > **验收**: 工作站类型增删改查全流程可用
 
-### 1.1 后端
+### 1.1 后端（mes-api）
 
 - [ ] **T1-01** Drizzle schema: `src/db/schema/workstation-type.ts`
 - [ ] **T1-02** zod 校验: `src/schemas/workstation-type.ts`
@@ -85,7 +93,7 @@
 - [ ] **T1-04** Routes: `src/routes/workstation-types.ts`
   - 挂载到 `/api/v1/workstation-types`
 
-### 1.2 前端
+### 1.2 前端（mes-web）
 
 - [ ] **T1-05** 类型定义: `src/types/workstation-type.ts`
 - [ ] **T1-06** API: `src/api/workstation-types.ts`
@@ -105,14 +113,14 @@
 > **依赖**: 阶段 0  
 > **验收**: 工厂增删改查全流程可用
 
-### 2.1 后端
+### 2.1 后端（mes-api）
 
 - [ ] **T2-01** Drizzle schema: `src/db/schema/factory.ts`
 - [ ] **T2-02** zod 校验: `src/schemas/factory.ts`
 - [ ] **T2-03** Service: `src/services/factory.service.ts`
 - [ ] **T2-04** Routes: `src/routes/factories.ts`
 
-### 2.2 前端
+### 2.2 前端（mes-web）
 
 - [ ] **T2-05** 类型 + API: `src/types/factory.ts`, `src/api/factories.ts`
 - [ ] **T2-06** 列表页: `src/routes/company-structure/factories/index.tsx`
@@ -130,7 +138,7 @@
 > **依赖**: 阶段 2（工厂下拉数据源）  
 > **验收**: 部门可关联工厂，列表显示工厂名称，支持按工厂筛选
 
-### 3.1 后端
+### 3.1 后端（mes-api）
 
 - [ ] **T3-01** Drizzle schema: `src/db/schema/division.ts`
 - [ ] **T3-02** zod 校验: `src/schemas/division.ts`
@@ -139,7 +147,7 @@
   - list JOIN `basic_factory` 返回 `factoryName`
 - [ ] **T3-04** Routes: `src/routes/divisions.ts`
 
-### 3.2 前端
+### 3.2 前端（mes-web）
 
 - [ ] **T3-05** 类型 + API: `src/types/division.ts`, `src/api/divisions.ts`
 - [ ] **T3-06** 列表页: `src/routes/company-structure/divisions/index.tsx`
@@ -163,7 +171,7 @@
 > **依赖**: 阶段 3  
 > **验收**: 生产线可关联多个部门，junction 表正确读写
 
-### 4.1 后端
+### 4.1 后端（mes-api）
 
 - [ ] **T4-01** Drizzle schema: `production-line.ts` + `division-production-line.ts`（junction）
 - [ ] **T4-02** zod 校验: `src/schemas/production-line.ts`（含 `divisionIds: number[]`）
@@ -173,7 +181,7 @@
   - list 支持 `divisionId` 筛选
 - [ ] **T4-04** Routes: `src/routes/production-lines.ts`
 
-### 4.2 前端
+### 4.2 前端（mes-web）
 
 - [ ] **T4-05** 类型 + API: `src/types/production-line.ts`, `src/api/production-lines.ts`
 - [ ] **T4-06** 列表页: `src/routes/company-structure/production-lines/index.tsx`
@@ -198,7 +206,7 @@
 > **依赖**: 阶段 1, 3, 4  
 > **验收**: 工作站可关联类型/部门/生产线，状态可切换
 
-### 5.1 后端
+### 5.1 后端（mes-api）
 
 - [ ] **T5-01** Drizzle schema: `src/db/schema/workstation.ts`
 - [ ] **T5-02** zod 校验: `src/schemas/workstation.ts`
@@ -209,7 +217,7 @@
 - [ ] **T5-04** Routes: `src/routes/workstations.ts`
   - 含 `PATCH /:id/state`
 
-### 5.2 前端
+### 5.2 前端（mes-web）
 
 - [ ] **T5-05** 类型 + API: `src/types/workstation.ts`, `src/api/workstations.ts`
 - [ ] **T5-06** 列表页: `src/routes/company-structure/workstations/index.tsx`
@@ -237,7 +245,7 @@
 > **依赖**: 阶段 1, 5  
 > **验收**: 部件可关联类型和工作站，支持按工作站筛选
 
-### 6.1 后端
+### 6.1 后端（mes-api）
 
 - [ ] **T6-01** Drizzle schema: `src/db/schema/subassembly.ts`
 - [ ] **T6-02** zod 校验: `src/schemas/subassembly.ts`
@@ -246,7 +254,7 @@
   - JOIN 返回 typeName, workstationName
 - [ ] **T6-04** Routes: `src/routes/subassemblies.ts`
 
-### 6.2 前端
+### 6.2 前端（mes-web）
 
 - [ ] **T6-05** 类型 + API: `src/types/subassembly.ts`, `src/api/subassemblies.ts`
 - [ ] **T6-06** 列表页: `src/routes/company-structure/subassemblies/index.tsx`
@@ -264,7 +272,7 @@
 
 ## 阶段 7: 整合与部署
 
-> **目标**: 打磨体验，可 Docker 部署  
+> **目标**: 打磨体验，两个项目各自可独立 Docker 部署  
 > **依赖**: 阶段 1–6 全部完成
 
 - [ ] **T7-01** 公司架构总览页（可选）
@@ -274,13 +282,11 @@
   - 顶栏搜索框，跨模块按 number/name 搜索，跳转对应列表
 - [ ] **T7-03** 统一错误提示（Ant Design `message` / `notification`）
 - [ ] **T7-04** 统一 loading 状态（表格、表单提交）
-- [ ] **T7-05** Docker Compose
-  - `mes-api` + `mes-web`（nginx 静态托管）+ 可选 PostgreSQL
-  - `docker-compose.yml` + `Dockerfile` × 2
-- [ ] **T7-06** README 文档
-  - 本地开发启动步骤
-  - 环境变量说明
-  - API 文档链接
+- [ ] **T7-05** `mes-api/Dockerfile` — 后端独立镜像
+- [ ] **T7-06** `mes-web/Dockerfile` + `nginx.conf` — 前端独立静态镜像
+- [ ] **T7-07** 部署编排 `docker-compose.yml`（放在部署目录，编排两个独立服务 + 可选 PostgreSQL）
+  - 非 monorepo，仅用于部署时同时启动
+  - 前端容器设置 `VITE_API_BASE_URL` 指向后端服务名
 
 ---
 
@@ -309,15 +315,17 @@ graph LR
 
 ## 通用组件清单（跨阶段复用）
 
-| 组件 / Hook | 首次创建 | 用途 |
-|-------------|----------|------|
-| `api/client.ts` | T0-10 | fetch 封装 |
-| `AppLayout` | T0-11 | 侧边栏布局 |
-| `EntityListPage` | T2-08 | 通用列表页骨架 |
-| `useEntityCrud` | T2-08 | 通用 CRUD hook |
-| `LookupSelect` | T3-08 | 远程下拉选择 |
-| `ActiveStatusTag` | T1-07 | 启用/停用标签 |
-| `ConfirmDeleteButton` | T1-07 | 删除确认 |
+| 组件 / Hook | 项目 | 首次创建 | 用途 |
+|-------------|------|----------|------|
+| `api/client.ts` | mes-web | T0-11 | fetch 封装 |
+| `AppLayout` | mes-web | T0-12 | 侧边栏布局 |
+| `EntityListPage` | mes-web | T2-08 | 通用列表页骨架 |
+| `useEntityCrud` | mes-web | T2-08 | 通用 CRUD hook |
+| `LookupSelect` | mes-web | T3-08 | 远程下拉选择 |
+| `ActiveStatusTag` | mes-web | T1-07 | 启用/停用标签 |
+| `ConfirmDeleteButton` | mes-web | T1-07 | 删除确认 |
+| CORS middleware | mes-api | T0-03 | 跨域支持 |
+| errorHandler | mes-api | T0-02 | 统一错误响应 |
 
 ---
 
@@ -327,13 +335,13 @@ graph LR
 
 | 任务 ID | 状态 | 完成日期 | 备注 |
 |---------|------|----------|------|
-| T0-01 ~ T0-12 | ⬜ | | |
+| T0-01 ~ T0-15 | ⬜ | | 前后端独立初始化 |
 | T1-01 ~ T1-08 | ⬜ | | |
 | T2-01 ~ T2-08 | ⬜ | | |
 | T3-01 ~ T3-09 | ⬜ | | |
 | T4-01 ~ T4-10 | ⬜ | | |
 | T5-01 ~ T5-11 | ⬜ | | |
 | T6-01 ~ T6-09 | ⬜ | | |
-| T7-01 ~ T7-06 | ⬜ | | |
+| T7-01 ~ T7-07 | ⬜ | | 独立 Docker 镜像 |
 
-**总计**: 73 项任务
+**总计**: 76 项任务

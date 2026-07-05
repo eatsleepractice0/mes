@@ -62,38 +62,75 @@
 
 | 类别 | 选型 |
 |------|------|
-| 包管理 | pnpm workspace (monorepo) |
+| 仓库策略 | **前后端独立项目**，不使用 monorepo |
+| 包管理 | 各项目独立管理（`mes-api`、`mes-web` 各自 `package.json`） |
 | 数据库 | 现有 PostgreSQL（demo_db 或生产库） |
-| 开发代理 | Vite proxy `/api` → `http://localhost:3001` |
+| 开发通信 | 前端 Vite proxy `/api` → `http://localhost:3001` |
+| 生产通信 | 前端 `VITE_API_BASE_URL` 指向后端地址；后端开启 CORS |
 
 ---
 
 ## 3. 项目结构
 
+前后端为**两个独立项目**，可放在同一父目录下并列管理，但各自拥有独立的依赖、构建与部署流程。
+
 ```
-/workspace/
-├── spec/
-│   ├── spec.md          # 本文件
-│   └── task.md          # 任务拆解
-├── mes-web/             # React 前端
+projects/                    # 本地开发父目录（可选，非 monorepo）
+├── mes-api/                 # 后端独立项目
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── drizzle.config.ts
+│   ├── .env.example
+│   ├── Dockerfile
+│   ├── README.md
 │   └── src/
-│       ├── routes/                  # TanStack Router 文件路由
-│       ├── api/                     # fetch client + 模块 API
-│       ├── components/              # 通用组件
-│       ├── hooks/                   # 业务 hooks
-│       └── types/                   # 共享类型
-├── mes-api/             # Express 后端
-│   └── src/
+│       ├── index.ts
 │       ├── db/
-│       │   ├── index.ts             # Drizzle 连接
-│       │   └── schema/              # 表定义
-│       ├── routes/                  # Express 路由
-│       ├── services/                # 业务逻辑
-│       ├── middleware/              # 错误处理等
-│       └── index.ts
-├── package.json         # monorepo 根
-└── pnpm-workspace.yaml
+│       │   ├── index.ts
+│       │   └── schema/
+│       ├── routes/
+│       ├── services/
+│       ├── schemas/
+│       └── middleware/
+│
+└── mes-web/                 # 前端独立项目
+    ├── package.json
+    ├── tsconfig.json
+    ├── vite.config.ts
+    ├── .env.example
+    ├── Dockerfile
+    ├── nginx.conf           # 生产静态托管
+    ├── README.md
+    └── src/
+        ├── routes/
+        ├── api/
+        ├── components/
+        ├── hooks/
+        └── types/
 ```
+
+规格文档存放于原 MES 仓库：
+
+```
+mes/                         # 原 Java MES 仓库（基线参考 + 文档）
+├── spec/
+│   ├── spec.md
+│   └── task.md
+├── mes-plugins/
+└── mes-application/
+```
+
+### 3.1 项目独立性说明
+
+| 维度 | mes-api | mes-web |
+|------|---------|---------|
+| 依赖安装 | `cd mes-api && pnpm install` | `cd mes-web && pnpm install` |
+| 开发启动 | `pnpm dev`（端口 3001） | `pnpm dev`（端口 5173） |
+| 构建 | `pnpm build` → `dist/` | `pnpm build` → `dist/` |
+| 环境变量 | `DATABASE_URL`, `PORT`, `CORS_ORIGIN` | `VITE_API_BASE_URL` |
+| 部署 | 独立 Node 容器 / 进程 | 独立 Nginx 静态容器 |
+
+> 类型定义在前端项目内维护，后端通过 zod schema 校验；**不共享 npm 包**，避免 monorepo 依赖。
 
 ---
 
@@ -384,7 +421,9 @@ SELECT nextval('basic_factory_id_seq');
 
 ```typescript
 // mes-web/src/api/client.ts
-const BASE = '/api/v1';
+const BASE = import.meta.env.VITE_API_BASE_URL
+  ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
+  : '/api/v1';
 
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -409,7 +448,17 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
 routes/     → 解析请求、调用 service、返回 JSON
 services/   → 业务逻辑、Drizzle 查询
 db/schema/  → Drizzle 表定义
-middleware/ → 错误处理、请求日志
+middleware/ → 错误处理、CORS、请求日志
+```
+
+### 8.1.1 CORS 配置
+
+前后端独立部署，后端需允许前端跨域：
+
+```typescript
+// mes-api/src/index.ts
+import cors from 'cors';
+app.use(cors({ origin: process.env.CORS_ORIGIN }));
 ```
 
 ### 8.2 Drizzle Schema 生成
@@ -444,14 +493,22 @@ LEFT JOIN basic_factory f ON d.factory_id = f.id
 
 ## 9. 环境配置
 
-### 9.1 后端 `.env`
+### 9.1 后端 `mes-api/.env`
 
 ```env
 PORT=3001
 DATABASE_URL=postgresql://user:password@localhost:5432/mes
+CORS_ORIGIN=http://localhost:5173
 ```
 
-### 9.2 前端 `vite.config.ts`
+### 9.2 前端 `mes-web/.env`
+
+```env
+# 开发环境留空，走 Vite proxy；生产环境填后端地址
+VITE_API_BASE_URL=
+```
+
+### 9.3 前端 `mes-web/vite.config.ts`
 
 ```typescript
 server: {
@@ -461,14 +518,34 @@ server: {
 }
 ```
 
+### 9.4 本地开发启动
+
+两个独立终端分别启动：
+
+```bash
+# 终端 1 — 后端
+cd mes-api && pnpm install && pnpm dev
+
+# 终端 2 — 前端
+cd mes-web && pnpm install && pnpm dev
+```
+
+### 9.5 生产部署
+
+- **mes-api**: 构建后 `node dist/index.js`，或 Docker 独立镜像
+- **mes-web**: `pnpm build` 产出静态文件，由 Nginx 托管；`VITE_API_BASE_URL=https://api.example.com`
+- 可选：在部署层用 `docker-compose.yml` 编排两个独立服务（非 monorepo，仅编排）
+
 ---
 
 ## 10. 验收标准
 
 ### 10.1 阶段 0（脚手架）
 
-- [ ] monorepo 可 `pnpm install` + `pnpm dev` 同时启动前后端
+- [ ] `mes-api` 独立项目可 `pnpm install` + `pnpm dev` 启动
+- [ ] `mes-web` 独立项目可 `pnpm install` + `pnpm dev` 启动
 - [ ] `GET /api/v1/health` 返回 200
+- [ ] 前端 Vite proxy 可访问后端 health 接口
 - [ ] 前端展示侧边栏布局，6 个菜单可导航（页面可为空）
 
 ### 10.2 每模块通用验收
