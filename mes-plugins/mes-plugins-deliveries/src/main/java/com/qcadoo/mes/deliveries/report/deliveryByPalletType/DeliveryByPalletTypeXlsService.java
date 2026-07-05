@@ -1,11 +1,13 @@
 package com.qcadoo.mes.deliveries.report.deliveryByPalletType;
 
 import com.qcadoo.localization.api.TranslationService;
-import com.qcadoo.mes.basic.constants.BasicConstants;
-import com.qcadoo.mes.basic.constants.TypeOfLoadUnitFields;
 import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
+import com.qcadoo.model.api.NumberService;
 import com.qcadoo.model.api.search.SearchRestrictions;
+import com.qcadoo.model.constants.DictionaryFields;
+import com.qcadoo.model.constants.DictionaryItemFields;
+import com.qcadoo.model.constants.QcadooModelConstants;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
@@ -17,6 +19,9 @@ import java.util.*;
 
 @Service
 class DeliveryByPalletTypeXlsService {
+
+    @Autowired
+    private NumberService numberService;
 
     @Autowired
     private TranslationService translationService;
@@ -32,11 +37,11 @@ class DeliveryByPalletTypeXlsService {
     }
 
     public void buildExcelContent(final XSSFWorkbook workbook, final XSSFSheet sheet, final Map<String, Object> filters,
-                                  final Locale locale) {
-        List<Entity> typeOfLoadUnits = getTypeOfLoadUnits();
-        fillHeaderRow(workbook, sheet, 0, locale, typeOfLoadUnits);
+            final Locale locale) {
+        List<Entity> pallets = getTypeOfPallets();
+        fillHeaderRow(workbook, sheet, 0, locale, pallets);
         Map<DeliveryByPalletTypeKey, DeliveryByPalletTypeValue> deliveryByPalletType = dataProvider.findEntries(filters);
-        fillRows(workbook, sheet, 1, locale, deliveryByPalletType, typeOfLoadUnits);
+        fillRows(workbook, sheet, 1, locale, deliveryByPalletType, pallets);
         autoSizeColumn(sheet);
     }
 
@@ -51,8 +56,7 @@ class DeliveryByPalletTypeXlsService {
     }
 
     private void fillRows(final XSSFWorkbook workbook, final XSSFSheet sheet, int rowNum, final Locale locale,
-                          Map<DeliveryByPalletTypeKey, DeliveryByPalletTypeValue> deliveryByPalletType,
-                          final List<Entity> typeOfLoadUnits) {
+            Map<DeliveryByPalletTypeKey, DeliveryByPalletTypeValue> deliveryByPalletType, final List<Entity> pallets) {
         Font font = workbook.createFont();
         font.setFontName(HSSFFont.FONT_ARIAL);
         font.setFontHeightInPoints((short) 10);
@@ -84,20 +88,19 @@ class DeliveryByPalletTypeXlsService {
             sumAllCell.setCellValue(value.sum());
 
             int number = 3;
-            for (Entity typeOfLoadUnit : typeOfLoadUnits) {
+            for (Entity pallet : pallets) {
                 XSSFCell quantity = rowLine.createCell(number);
                 quantity.setCellStyle(numberStyle);
                 quantity.setCellType(Cell.CELL_TYPE_NUMERIC);
-                quantity.setCellValue(nullToZero(value.getPalletQuantity().get(typeOfLoadUnit.getStringField(TypeOfLoadUnitFields.NAME))));
+                quantity.setCellValue(nullToZero(value.getPalletQuantity().get(pallet.getStringField(DictionaryItemFields.NAME))));
                 number++;
             }
             rowNum++;
         }
     }
 
-    private void fillHeaderRow(final XSSFWorkbook workbook, final XSSFSheet sheet, final int rowNum,
-                               final Locale locale,
-                               final List<Entity> typeOfLoadUnits) {
+    private void fillHeaderRow(final XSSFWorkbook workbook, final XSSFSheet sheet, final int rowNum, final Locale locale,
+            final List<Entity> pallets) {
         XSSFRow headerLine = sheet.createRow(rowNum);
         XSSFFont font = workbook.createFont();
         font.setFontHeightInPoints((short) 10);
@@ -124,23 +127,28 @@ class DeliveryByPalletTypeXlsService {
         sumOfPalletCell.setCellStyle(style);
 
         int number = 3;
-        for (Entity typeOfLoadUnit : typeOfLoadUnits) {
-            XSSFCell typeOfLoadUnitCell = headerLine.createCell(number);
-            typeOfLoadUnitCell.setCellValue(translationService
-                    .translate("deliveries.deliveryByPalletTypeReport.report.pallet", locale, typeOfLoadUnit.getStringField(TypeOfLoadUnitFields.NAME)));
-            typeOfLoadUnitCell.setCellStyle(style);
+        for (Entity pallet : pallets) {
+            XSSFCell palletCell = headerLine.createCell(number);
+            palletCell.setCellValue(translationService
+                    .translate("deliveries.deliveryByPalletTypeReport.report.pallet", locale, pallet.getStringField(DictionaryItemFields.NAME)));
+            palletCell.setCellStyle(style);
             number++;
         }
 
     }
 
-    private List<Entity> getTypeOfLoadUnits() {
-        return dataDefinitionService.get(BasicConstants.PLUGIN_IDENTIFIER, BasicConstants.MODEL_TYPE_OF_LOAD_UNIT)
-                .find().add(SearchRestrictions.eq("active", true)).list().getEntities();
+    private List<Entity> getTypeOfPallets() {
+        Entity typeOfPalletDictionary = dataDefinitionService
+                .get(QcadooModelConstants.PLUGIN_IDENTIFIER, QcadooModelConstants.MODEL_DICTIONARY).find()
+                .add(SearchRestrictions.eq(DictionaryFields.NAME, "typeOfPallet")).uniqueResult();
+
+        return dataDefinitionService.get(QcadooModelConstants.PLUGIN_IDENTIFIER, QcadooModelConstants.MODEL_DICTIONARY_ITEM)
+                .find().add(SearchRestrictions.belongsTo(DictionaryItemFields.DICTIONARY, typeOfPalletDictionary))
+                .add(SearchRestrictions.eq("active", true)).list().getEntities();
     }
 
     private Integer nullToZero(Integer val) {
-        if (Objects.isNull(val)) {
+        if(Objects.isNull(val)){
             return 0;
         }
         return val;

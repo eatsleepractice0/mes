@@ -132,18 +132,20 @@ public class DocumentPositionsController {
 
     @ResponseBody
     @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "resourceByNumber/{document}/{resource}")
-    public ResourceDTO getBatchForResource(@PathVariable final Long document, @PathVariable final String resource) {
+    public ResourceDTO getBatchForResource(@PathVariable final Long document, @PathVariable final String resource)
+            throws UnsupportedEncodingException {
         String decodedResource = new String(BaseEncoding.base64Url().decode(resource), StandardCharsets.UTF_8);
 
         return documentPositionService.getResourceByNumber(decodedResource);
     }
 
     @ResponseBody
-    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "typeOfLoadUnitByLoadUnit/{document}/{loadUnitNumber}")
-    public String getTypeOfLoadUnitForLoadUnitNumber(@PathVariable final Long document, @PathVariable final String loadUnitNumber) {
-        String decodedLoadUnitNumber = new String(BaseEncoding.base64Url().decode(loadUnitNumber), StandardCharsets.UTF_8);
+    @RequestMapping(method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, value = "typeOfPalletByPallet/{document}/{pallet}")
+    public String getTypeOfPalletForPallet(@PathVariable final Long document, @PathVariable final String pallet)
+            throws UnsupportedEncodingException {
+        String decodedPallet = new String(BaseEncoding.base64Url().decode(pallet), StandardCharsets.UTF_8);
 
-        return documentPositionService.getTypeOfLoadUnitByPalletNumber(document, decodedLoadUnitNumber);
+        return documentPositionService.getTypeOfPalletByPalletNumber(document, decodedPallet);
     }
 
     @ResponseBody

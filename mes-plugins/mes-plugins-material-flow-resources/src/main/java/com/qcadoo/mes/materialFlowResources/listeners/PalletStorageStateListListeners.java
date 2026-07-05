@@ -3,7 +3,6 @@ package com.qcadoo.mes.materialFlowResources.listeners;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.qcadoo.mes.materialFlowResources.constants.PalletStorageStateDtoFields;
-import com.qcadoo.mes.materialFlowResources.constants.ResourceDtoFields;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.model.api.search.SearchRestrictions;
 import com.qcadoo.view.api.ComponentState;
@@ -20,7 +19,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 @Service
 public class PalletStorageStateListListeners {
@@ -41,7 +39,7 @@ public class PalletStorageStateListListeners {
 
         Consumer<String> filterAppender = createFilterAppender(filters, selectedRecord);
         filterAppender.accept(PalletStorageStateDtoFields.PALLET_NUMBER);
-        filterAppender.accept(PalletStorageStateDtoFields.TYPE_OF_LOAD_UNIT);
+        filterAppender.accept(PalletStorageStateDtoFields.TYPE_OF_PALLET);
         filterAppender.accept(PalletStorageStateDtoFields.STORAGE_LOCATION_NUMBER);
         filterAppender.accept(PalletStorageStateDtoFields.LOCATION_NUMBER);
 
@@ -79,7 +77,7 @@ public class PalletStorageStateListListeners {
 
     public void showAllPallets(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         GridComponent palletGrid = (GridComponent) view.getComponentByReference(QcadooViewConstants.L_GRID);
-        palletGrid.setCustomRestriction(searchBuilder -> searchBuilder.add(SearchRestrictions.ge(PalletStorageStateDtoFields.TOTAL_QUANTITY, BigDecimal.ZERO)));
+        palletGrid.setCustomRestriction(searchBuilder -> searchBuilder.add(SearchRestrictions.ge(PalletStorageStateDtoFields.TOTAL_QUANTITY,BigDecimal.ZERO)));
         CheckBoxComponent isShiftFilter = (CheckBoxComponent) view.getComponentByReference(PalletStorageStateDtoFields.IS_SHIFT_FILTER);
         CheckBoxComponent isFreeFilter = (CheckBoxComponent) view.getComponentByReference(PalletStorageStateDtoFields.IS_FREE_FILTER);
         isShiftFilter.setChecked(false);
@@ -97,26 +95,12 @@ public class PalletStorageStateListListeners {
         isFreeFilter.requestComponentUpdateState();
 
     }
-
     public void moveToStorageLocation(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         performActionBasedOnSelectedEntities(view, "palletMoveToStorageLocationHelper");
     }
 
     public void transferResources(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         performActionBasedOnSelectedEntities(view, "palletResourcesTransferHelper");
-    }
-
-    public void transferLoadUnits(final ViewDefinitionState view, final ComponentState state, final String[] args) {
-        GridComponent palletStorageStateGrid = (GridComponent) view.getComponentByReference(QcadooViewConstants.L_GRID);
-        Set<Long> selectedEntities = palletStorageStateGrid.getSelectedEntitiesIds();
-
-        final Map<String, Object> parameters = new HashMap<>();
-        parameters.put("selectedEntities", selectedEntities);
-        JSONObject context = new JSONObject(parameters);
-        String url = "../page/materialFlowResources/palletLoadUnitsTransferHelper.html?context=" +
-                context;
-
-        view.redirectTo(url, false, true);
     }
 
     private void performActionBasedOnSelectedEntities(ViewDefinitionState view, String viewName) {
@@ -130,22 +114,9 @@ public class PalletStorageStateListListeners {
         JSONObject context = new JSONObject(parameters);
         StringBuilder url = new StringBuilder("../page/materialFlowResources/" + viewName + ".html");
         url.append("?context=");
-        url.append(context);
+        url.append(context.toString());
 
         view.openModal(url.toString());
-    }
-
-    public final void changeTypeOfLoadUnit(final ViewDefinitionState view, final ComponentState state,
-                                           final String[] args) {
-        GridComponent gridComponent = (GridComponent) view.getComponentByReference(QcadooViewConstants.L_GRID);
-
-        Map<String, Object> parameters = Maps.newHashMap();
-
-        String url = "../page/materialFlowResources/changeTypeOfLoadUnitHelper.html";
-
-        parameters.put("form.id", gridComponent.getSelectedEntities().stream().findFirst().get().getId());
-
-        view.openModal(url, parameters);
     }
 
 }

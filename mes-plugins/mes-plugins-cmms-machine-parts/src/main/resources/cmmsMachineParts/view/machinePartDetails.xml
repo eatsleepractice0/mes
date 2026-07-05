@@ -405,6 +405,8 @@
 
     <hooks>
         <beforeRender class="com.qcadoo.mes.basic.hooks.ProductDetailsHooks"
+                      method="generateProductNumber"/>
+        <beforeRender class="com.qcadoo.mes.basic.hooks.ProductDetailsHooks"
                       method="fillUnit"/>
         <beforeRender class="com.qcadoo.mes.basic.hooks.ProductDetailsHooks"
                       method="disableProductFormForExternalItems"/>

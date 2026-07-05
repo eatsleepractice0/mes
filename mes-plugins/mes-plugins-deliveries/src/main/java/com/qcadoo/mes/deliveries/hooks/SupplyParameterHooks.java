@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -24,10 +24,10 @@
 package com.qcadoo.mes.deliveries.hooks;
 
 import com.qcadoo.localization.api.TranslationService;
+import com.qcadoo.mes.advancedGenealogy.constants.ParameterFieldsAG;
 import com.qcadoo.mes.basic.constants.BasicConstants;
 import com.qcadoo.mes.basic.constants.NumberPatternFields;
 import com.qcadoo.mes.basic.constants.ProductFields;
-import com.qcadoo.mes.deliveries.constants.IncludeInCalculationDeliveries;
 import com.qcadoo.mes.deliveries.constants.ParameterFieldsD;
 import com.qcadoo.model.api.DataDefinition;
 import com.qcadoo.model.api.DataDefinitionService;
@@ -48,7 +48,6 @@ import static com.qcadoo.mes.deliveries.constants.ParameterFieldsD.OTHER_ADDRESS
 @Service
 public class SupplyParameterHooks {
 
-    public static final String QCADOO_VIEW_VALIDATE_FIELD_ERROR_MISSING = "qcadooView.validate.field.error.missing";
     @Autowired
     private DataDefinitionService dataDefinitionService;
 
@@ -56,7 +55,7 @@ public class SupplyParameterHooks {
     private TranslationService translationService;
 
     public void setFieldsVisibleAndRequired(final ViewDefinitionState view, final ComponentState componentState,
-                                            final String[] args) {
+            final String[] args) {
         setFieldsVisibleAndRequired(view);
     }
 
@@ -85,29 +84,9 @@ public class SupplyParameterHooks {
         boolean selectForAddress = OTHER.getStringValue().equals(defaultAddress.getFieldValue());
 
         changeFieldsState(view, OTHER_ADDRESS, selectForAddress);
-
-        CheckBoxComponent sendEmailToSupplier = (CheckBoxComponent) view
-                .getComponentByReference(ParameterFieldsD.SEND_EMAIL_TO_SUPPLIER);
-        boolean sendEmailToSupplierValue = sendEmailToSupplier.isChecked();
-        changeFieldEnabledAndRequired(view, ParameterFieldsD.DELIVERY_EMAIL_SUBJECT, sendEmailToSupplierValue);
-        changeFieldEnabledAndRequired(view, ParameterFieldsD.DELIVERY_EMAIL_BODY, sendEmailToSupplierValue);
     }
 
-    private void changeFieldEnabledAndRequired(final ViewDefinitionState view, final String fieldName,
-                                               final boolean enabled) {
-        FieldComponent field = (FieldComponent) view.getComponentByReference(fieldName);
-        field.setEnabled(enabled);
-        field.setRequired(enabled);
-
-        if (!enabled) {
-            field.setFieldValue(null);
-        }
-
-        field.requestComponentUpdateState();
-    }
-
-    private void changeFieldsState(final ViewDefinitionState view, final String fieldName,
-                                   final boolean selectForAddress) {
+    private void changeFieldsState(final ViewDefinitionState view, final String fieldName, final boolean selectForAddress) {
         FieldComponent field = (FieldComponent) view.getComponentByReference(fieldName);
         field.setVisible(selectForAddress);
         field.setRequired(selectForAddress);
@@ -120,8 +99,8 @@ public class SupplyParameterHooks {
     }
 
     public void onCreate(final DataDefinition dataDefinition, final Entity parameter) {
+
         parameter.setField(ParameterFieldsD.DELIVERED_BIGGER_THAN_ORDERED, true);
-        parameter.setField(ParameterFieldsD.INCLUDE_IN_CALCULATION_DELIVERIES, IncludeInCalculationDeliveries.CONFIRMED_DELIVERIES.getStringValue());
     }
 
     public final boolean checkIfNumberPatternIsSelected(final DataDefinition parameterDD, final Entity parameter) {
@@ -135,34 +114,6 @@ public class SupplyParameterHooks {
         return true;
     }
 
-    public final boolean checkIfIncludeInCalculationDeliveriesIsSelected(final DataDefinition parameterDD,
-                                                                         final Entity parameter) {
-        if (parameter.getStringField(ParameterFieldsD.INCLUDE_IN_CALCULATION_DELIVERIES) == null) {
-            parameter.addError(parameterDD.getField(ParameterFieldsD.INCLUDE_IN_CALCULATION_DELIVERIES),
-                    "basic.parameter.message.includeInCalculationDeliveriesIsNotSelected");
-            return false;
-        }
-
-        return true;
-    }
-
-    public final boolean checkIfDeliveryEmailFieldsFilled(final DataDefinition parameterDD, final Entity parameter) {
-        boolean isValid = true;
-        if (parameter.getBooleanField(ParameterFieldsD.SEND_EMAIL_TO_SUPPLIER)) {
-            if (parameter.getStringField(ParameterFieldsD.DELIVERY_EMAIL_SUBJECT) == null) {
-                parameter.addError(parameterDD.getField(ParameterFieldsD.DELIVERY_EMAIL_SUBJECT),
-                        QCADOO_VIEW_VALIDATE_FIELD_ERROR_MISSING);
-                isValid = false;
-            }
-            if (parameter.getStringField(ParameterFieldsD.DELIVERY_EMAIL_BODY) == null) {
-                parameter.addError(parameterDD.getField(ParameterFieldsD.DELIVERY_EMAIL_BODY),
-                        QCADOO_VIEW_VALIDATE_FIELD_ERROR_MISSING);
-                isValid = false;
-            }
-        }
-
-        return isValid;
-    }
 
     public void setUsedInForNumberPattern(final DataDefinition parameterDD, final Entity parameter) {
         Entity numberPattern = parameter.getBelongsToField(ParameterFieldsD.PRODUCT_DELIVERY_BATCH_NUMBER_PATTERN);

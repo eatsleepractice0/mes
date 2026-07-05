@@ -86,7 +86,7 @@ public class ProductionLineAddMultiListeners {
 
     private DataDefinition getTechnologyProductionLineDD() {
         return dataDefinitionService.get(ProductFlowThruDivisionConstants.PLUGIN_IDENTIFIER,
-                TechnologiesConstants.MODEL_TECHNOLOGY_PRODUCTION_LINE);
+                ProductFlowThruDivisionConstants.MODEL_TECHNOLOGY_PRODUCTION_LINE);
     }
 
     private DataDefinition getTechnologyDD() {

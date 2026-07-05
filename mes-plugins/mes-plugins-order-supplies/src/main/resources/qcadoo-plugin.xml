@@ -117,12 +117,21 @@
         <model:model model="coverageAnalysisForOrder" resource="model/coverageAnalysisForOrder.xml"/>
         <model:model model="coverageAnalysisForOrderDto" resource="model/coverageAnalysisForOrderDto.xml"/>
 
+        <model:model-field model="parameter" plugin="basic">
+            <model:enum name="includeInCalculationDeliveries"
+                        values="01confirmedDeliveries,02unconfirmedDeliveries,03nonDraftDeliveries"
+                        required="true" default="01confirmedDeliveries"/>
+        </model:model-field>
+
         <model:model-field plugin="basic" model="parameter">
             <model:integer name="defaultCoverageFromDays"/>
         </model:model-field>
         <model:model-field plugin="basic" model="parameter">
             <model:hasMany name="coverageLocations" joinField="parameter" model="coverageLocation"
                            plugin="orderSupplies"/>
+        </model:model-field>
+        <model:model-field plugin="basic" model="parameter">
+            <model:boolean name="includeDraftDeliveries"/>
         </model:model-field>
         <model:model-field plugin="basic" model="parameter">
             <model:boolean name="automaticSaveCoverage"/>
@@ -151,6 +160,7 @@
                               joinField="coverageOrders" plugin="orderSupplies" cascade="nullify"/>
         </model:model-field>
 
+
         <model:model-field plugin="orders" model="order">
             <model:boolean name="registerFilled"/>
         </model:model-field>
@@ -169,27 +179,25 @@
         <view:view resource="view/requestForQuotationDetails.xml"/>
         <view:view resource="view/supplierModalRequestForQuotation.xml"/>
         <view:view resource="view/supplierModalDelivery.xml"/>
-        <view:view resource="view/supplyParametersForMinimalStates.xml"/>
 
         <view:view-tab resource="view/tabExtensions/supplyParametersForCoverages.xml"/>
-
-        <view:view-ribbon-group resource="view/ribbonExtensions/supplyParameters.xml" />
+        <view:view-tab resource="view/tabExtensions/supplyParametersForMinimalStates.xml"/>
 
         <model:model-field plugin="orders" model="order">
             <model:hasMany name="coverageAnalysisForOrders"
                            model="coverageAnalysisForOrder" plugin="orderSupplies" joinField="order"
-                           cascade="delete"/>
+                           cascade="delete" copyable="false"/>
         </model:model-field>
 
         <model:model-field plugin="orders" model="order">
             <model:hasMany name="coverageProductLoggings"
                            model="coverageProductLogging" plugin="orderSupplies" joinField="order"
-                           cascade="delete"/>
+                           cascade="delete" copyable="false"/>
         </model:model-field>
 
-        <view:view-listener plugin="deliveries" view="supplyParameters"
-                            component="form" event="redirectToSupplyParametersForMinimalStates"
-                            class="com.qcadoo.mes.orderSupplies.listeners.ParametersListenersOS" method="redirectToSupplyParametersForMinimalStates" />
+        <view:view-hook plugin="deliveries" view="supplyParameters"
+                        type="beforeRender" class="com.qcadoo.mes.orderSupplies.hooks.SupplyParametersHooksOS"
+                        method="onBeforeRender"/>
         <custom:custom
                 class="com.qcadoo.mes.orderSupplies.OrderSuppliesOnStartupService"/>
     </modules>

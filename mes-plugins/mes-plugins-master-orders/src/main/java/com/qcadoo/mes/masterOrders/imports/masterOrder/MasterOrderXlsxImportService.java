@@ -23,24 +23,11 @@
  */
 package com.qcadoo.mes.masterOrders.imports.masterOrder;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
-import com.qcadoo.mes.basic.imports.dtos.CellBinder;
-import com.qcadoo.mes.basic.imports.dtos.CellBinderRegistry;
-import com.qcadoo.mes.basic.imports.dtos.ImportStatus;
-import com.qcadoo.mes.basic.imports.helpers.RowProcessorHelper;
-import com.qcadoo.model.api.search.SearchCriterion;
-import com.qcadoo.model.api.search.SearchRestrictions;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -59,8 +46,6 @@ import com.qcadoo.model.api.DataDefinition;
 import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.model.constants.VersionableConstants;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 @Service
 public class MasterOrderXlsxImportService extends XlsxImportService {
@@ -74,19 +59,6 @@ public class MasterOrderXlsxImportService extends XlsxImportService {
 
     @Autowired
     private TechnologyServiceO technologyServiceO;
-
-    @Override
-    protected Entity getEntityToSkip(String pluginIdentifier, String modelName,
-                                  Function<Entity, SearchCriterion> criteriaSupplier, Entity entity) {
-        Entity masterOrderFromDB = getMasterOrderFromDB(entity);
-        Entity product = entity.getBelongsToField(MasterOrderFields.PRODUCT);
-        if (Objects.nonNull(masterOrderFromDB)) {
-            return getMasterOrderProductDD().find().add(SearchRestrictions.belongsTo(MasterOrderProductFields.PRODUCT, product))
-                    .add(SearchRestrictions.belongsTo(MasterOrderProductFields.MASTER_ORDER, masterOrderFromDB)).setMaxResults(1).uniqueResult();
-        } else {
-            return null;
-        }
-    }
 
     @Override
     public Entity createEntity(final String pluginIdentifier, final String modelName) {
@@ -110,7 +82,7 @@ public class MasterOrderXlsxImportService extends XlsxImportService {
         validateDates(masterOrder, masterOrderDD);
         validateTechnology(masterOrder, masterOrderDD);
         validateMasterOrderPositionStatus(masterOrder, masterOrderDD);
-        validateMasterOrderProduct(masterOrder, masterOrderFromDB);
+        validateMasterOrderProduct(masterOrder, masterOrderFromDB, masterOrderDD);
     }
 
     private Entity getMasterOrderFromDB(final Entity masterOrder) {
@@ -119,7 +91,7 @@ public class MasterOrderXlsxImportService extends XlsxImportService {
     }
 
     private void validateMasterOrder(final Entity masterOrder, final Entity masterOrderFromDB,
-                                     final DataDefinition masterOrderDD) {
+            final DataDefinition masterOrderDD) {
         if (Objects.nonNull(masterOrderFromDB)) {
             checkIfFieldsAreSame(masterOrder, masterOrderFromDB, masterOrderDD, MasterOrderFields.NUMBER);
             checkIfFieldsAreSame(masterOrder, masterOrderFromDB, masterOrderDD, MasterOrderFields.NAME);
@@ -134,7 +106,7 @@ public class MasterOrderXlsxImportService extends XlsxImportService {
     }
 
     private void checkIfFieldsAreSame(final Entity masterOrder, final Entity masterOrderFromDB,
-                                      final DataDefinition masterOrderDD, final String fieldName) {
+            final DataDefinition masterOrderDD, final String fieldName) {
         Object fieldValue = masterOrder.getField(fieldName);
         Object fieldValueFromDB = masterOrderFromDB.getField(fieldName);
 
@@ -189,9 +161,13 @@ public class MasterOrderXlsxImportService extends XlsxImportService {
         }
     }
 
-    private void validateMasterOrderProduct(final Entity masterOrder, final Entity masterOrderFromDB) {
+    private void validateMasterOrderProduct(final Entity masterOrder, final Entity masterOrderFromDB,
+            final DataDefinition masterOrderDD) {
         Entity product = masterOrder.getBelongsToField(MasterOrderFields.PRODUCT);
         BigDecimal masterOrderQuantity = masterOrder.getDecimalField(MasterOrderFields.MASTER_ORDER_QUANTITY);
+        Entity technology = masterOrder.getBelongsToField(MasterOrderFields.TECHNOLOGY);
+        String comments = masterOrder.getStringField(MasterOrderFields.COMMENTS);
+        String masterOrderPositionStatus = masterOrder.getStringField(MasterOrderFields.MASTER_ORDER_POSITION_STATUS);
 
         if (Objects.nonNull(product) && Objects.nonNull(masterOrderQuantity)) {
             List<Entity> masterOrderProducts = Lists.newArrayList();
@@ -202,7 +178,8 @@ public class MasterOrderXlsxImportService extends XlsxImportService {
                 masterOrderProducts.addAll(masterOrderFromDB.getHasManyField(MasterOrderFields.MASTER_ORDER_PRODUCTS));
             }
 
-            Entity masterOrderProduct = createMasterOrderProduct(product, masterOrderQuantity, masterOrder);
+            Entity masterOrderProduct = createMasterOrderProduct(product, masterOrderQuantity, technology, comments,
+                    masterOrderPositionStatus);
 
             masterOrderProducts.add(masterOrderProduct);
 
@@ -216,21 +193,15 @@ public class MasterOrderXlsxImportService extends XlsxImportService {
                 masterOrderFromDB.getLongField(VersionableConstants.VERSION_FIELD_NAME));
     }
 
-    private Entity createMasterOrderProduct(final Entity product, final BigDecimal masterOrderQuantity,
-                                            final Entity masterOrder) {
+    private Entity createMasterOrderProduct(final Entity product, final BigDecimal masterOrderQuantity, final Entity technology,
+            final String comments, final String masterOrderPositionStatus) {
         Entity masterOrderProduct = getMasterOrderProductDD().create();
-
-        Entity technology = masterOrder.getBelongsToField(MasterOrderFields.TECHNOLOGY);
-        String comments = masterOrder.getStringField(MasterOrderFields.COMMENTS);
-        String masterOrderPositionStatus = masterOrder.getStringField(MasterOrderFields.MASTER_ORDER_POSITION_STATUS);
 
         masterOrderProduct.setField(MasterOrderProductFields.PRODUCT, product);
         masterOrderProduct.setField(MasterOrderProductFields.MASTER_ORDER_QUANTITY, masterOrderQuantity);
         masterOrderProduct.setField(MasterOrderProductFields.TECHNOLOGY, technology);
         masterOrderProduct.setField(MasterOrderProductFields.COMMENTS, comments);
         masterOrderProduct.setField(MasterOrderProductFields.MASTER_ORDER_POSITION_STATUS, masterOrderPositionStatus);
-        masterOrderProduct.setField(MasterOrderProductFields.DELIVERY_DATE, masterOrder.getDateField(MasterOrderFields.DELIVERY_DATE));
-        masterOrderProduct.setField(MasterOrderProductFields.PRICE, masterOrder.getDecimalField(MasterOrderFields.PRICE));
 
         return masterOrderProduct;
     }

@@ -25,9 +25,6 @@ package com.qcadoo.mes.basic.constants;
 
 public final class BasicConstants {
 
-    public static final String MODEL_QUALITY_CARD = "qualityCard";
-    public static final String MODEL_QUALITY_CARD_STATE_CHANGE = "qualityCardStateChange";
-
     private BasicConstants() {
 
     }
@@ -118,8 +115,6 @@ public final class BasicConstants {
     public static final String MODEL_MACHINE_WORKING_PERIOD = "machineWorkingPeriod";
 
     public static final String MODEL_LICENSE_USAGE = "licenseUsage";
-
-    public static final String MODEL_TYPE_OF_LOAD_UNIT = "typeOfLoadUnit";
 
     // VIEW
 

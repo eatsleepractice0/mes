@@ -43,7 +43,7 @@ public final class DeliveredProductFields {
 
     public static final String PALLET_NUMBER = "palletNumber";
 
-    public static final String TYPE_OF_LOAD_UNIT = "typeOfLoadUnit";
+    public static final String PALLET_TYPE = "palletType";
 
     public static final String STORAGE_LOCATION = "storageLocation";
 
@@ -63,6 +63,8 @@ public final class DeliveredProductFields {
 
     public static final String VALIDATE_PALLET = "validatePallet";
 
+    public static final String DAMAGED = "damaged";
+
     public static final String DELIVERED_PRODUCT_ATTRIBUTE_VALS = "deliveredProductAttributeVals";
 
     public static final String ORDERED_PRODUCT = "orderedProduct";
@@ -72,9 +74,5 @@ public final class DeliveredProductFields {
     public static final String EXPIRATION_DATE = "expirationDate";
 
     public static final String ADD_BATCH = "addBatch";
-
-    public static final String PICKING_DATE = "pickingDate";
-
-    public static final String PICKING_WORKER = "pickingWorker";
 
 }

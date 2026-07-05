@@ -55,7 +55,7 @@ public class SchedulePositionValidators {
         if (workstation != null) {
             Entity schedule = schedulePosition.getBelongsToField(SchedulePositionFields.SCHEDULE);
             Entity order = schedulePosition.getBelongsToField(SchedulePositionFields.ORDER);
-            List<Entity> workstations = getWorkstationsFromTOC(schedule, schedulePosition.getBelongsToField(SchedulePositionFields.TECHNOLOGY_OPERATION_COMPONENT), order);
+            List<Entity> workstations = getWorkstationsFromTOC(schedule, schedulePosition, order);
 
             if (workstations.stream().noneMatch(w -> w.getId().equals(workstation.getId()))) {
                 schedulePosition.addError(dataDefinition.getField(SchedulePositionFields.WORKSTATION),
@@ -66,7 +66,8 @@ public class SchedulePositionValidators {
         return true;
     }
 
-    public List<Entity> getWorkstationsFromTOC(Entity schedule, Entity technologyOperationComponent, Entity order) {
+    public List<Entity> getWorkstationsFromTOC(Entity schedule, Entity position, Entity order) {
+        Entity technologyOperationComponent = position.getBelongsToField(SchedulePositionFields.TECHNOLOGY_OPERATION_COMPONENT);
         List<Entity> workstations;
         if (AssignedToOperation.WORKSTATIONS.getStringValue()
                 .equals(technologyOperationComponent.getStringField(TechnologyOperationComponentFields.ASSIGNED_TO_OPERATION))) {
@@ -88,7 +89,14 @@ public class SchedulePositionValidators {
                         .collect(Collectors.toList());
             }
         }
-        return workstations.stream().filter(Entity::isActive).collect(Collectors.toList());
+        if (schedule.getBooleanField(ScheduleFields.SCHEDULE_FOR_BUFFER)) {
+            List<Entity> bufferWorkstations = workstations.stream().filter(e -> e.getBooleanField(WorkstationFields.BUFFER))
+                    .collect(Collectors.toList());
+            if (!bufferWorkstations.isEmpty()) {
+                return bufferWorkstations;
+            }
+        }
+        return workstations;
     }
 
     private boolean validateDates(DataDefinition dataDefinition, Entity schedulePosition) {

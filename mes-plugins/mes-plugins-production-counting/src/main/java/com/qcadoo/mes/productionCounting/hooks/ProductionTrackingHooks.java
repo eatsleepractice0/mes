@@ -313,7 +313,7 @@ public class ProductionTrackingHooks {
         return false;
     }
 
-    public void copyProducts(final Entity productionTracking) {
+    private void copyProducts(final Entity productionTracking) {
         Entity order = productionTracking.getBelongsToField(ProductionTrackingFields.ORDER);
 
         final boolean registerQuantityInProduct = order.getBooleanField(OrderFieldsPC.REGISTER_QUANTITY_IN_PRODUCT);

@@ -561,7 +561,7 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
             updateFieldValue('storageLocation', resource['storageLocation'], rowId);
             updateFieldValue('palletNumber', resource['palletNumber'], rowId);
             updateFieldValue('price', resource['price'], rowId);
-            updateFieldValue('typeOfLoadUnit', resource['typeOfLoadUnit'], rowId);
+            updateFieldValue('typeOfPallet', resource['typeOfPallet'], rowId);
             updateFieldValue('waste', resource['waste'], rowId);
             if ($scope.config.outDocument) {
                 var positionQuantity = getFieldValue('quantity', rowId);
@@ -582,7 +582,7 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
     }
 
     function clearResourceRelatedFields(rowId) {
-        var fieldnames = ['resource', 'productionDate', 'expirationDate', 'storageLocation', 'palletNumber', 'price', 'typeOfLoadUnit', 'waste', 'lastResource'];
+        var fieldnames = ['resource', 'productionDate', 'expirationDate', 'storageLocation', 'palletNumber', 'price', 'typeOfPallet', 'waste', 'lastResource'];
 
         for (var i in fieldnames) {
             updateFieldValue(fieldnames[i], '', rowId);
@@ -603,9 +603,9 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
             window.clearTimeout(t.data("timeout"));
             $(this).data("timeout", setTimeout(function () {
                 if (t.val()) {
-                    fillTypeOfLoadUnitFromLoadUnit(t.val(), getRowIdFromElement(t))
+                    fillTypeOfPalletFromPallet(t.val(), getRowIdFromElement(t))
                 } else {
-                    updateFieldValue('typeOfLoadUnit', '', getRowIdFromElement(t));
+                    updateFieldValue('typeOfPallet', '', getRowIdFromElement(t));
                 }
             }, 500));
         });
@@ -613,10 +613,10 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
         return lookup;
     }
 
-    function fillTypeOfLoadUnitFromLoadUnit(pallet, rowId) {
-        $.get('/rest/rest/documentPositions/typeOfLoadUnitByLoadUnit/' + getDocumentId() + '/' + Base64.encodeURI(pallet) + ".html", function (typeOfLoadUnit) {
-            if (typeOfLoadUnit !== '') {
-                updateFieldValue('typeOfLoadUnit', typeOfLoadUnit, rowId);
+    function fillTypeOfPalletFromPallet(pallet, rowId) {
+        $.get('/rest/rest/documentPositions/typeOfPalletByPallet/' + getDocumentId() + '/' + Base64.encodeURI(pallet) + ".html", function (typeOfPallet) {
+            if (typeOfPallet !== '') {
+                updateFieldValue('typeOfPallet', typeOfPallet, rowId);
             }
         });
     }
@@ -1586,6 +1586,20 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
                 editable: false
             },
             {
+                name: 'restAfterShiftDisposition',
+                index: 'restAfterShiftDisposition',
+                formatter: numberFormatter,
+                unformat: numberUnformat,
+                editable: false
+            },
+            {
+                name: 'restAfterShiftDispositionAddUnit',
+                index: 'restAfterShiftDispositionAddUnit',
+                formatter: numberFormatter,
+                unformat: numberUnformat,
+                editable: false
+            },
+            {
                 name: 'batch',
                 index: 'batch',
                 editable: true,
@@ -1613,8 +1627,8 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
                 }
             },
             {
-                name: 'typeOfLoadUnit',
-                index: 'typeOfLoadUnit',
+                name: 'typeOfPallet',
+                index: 'typeOfPallet',
                 editable: true,
                 required: true,
                 edittype: 'select',
@@ -1730,7 +1744,7 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
         var readOnlyInType = function (outDocument, columnIndex) {
             if (outDocument && (columnIndex === 'expirationDate' || columnIndex === 'productionDate' ||
                 columnIndex === 'price' || columnIndex === 'waste' ||
-                columnIndex === 'palletNumber' || columnIndex === 'typeOfLoadUnit' || columnIndex === 'storageLocation')) {
+                columnIndex === 'palletNumber' || columnIndex === 'typeOfPallet' || columnIndex === 'storageLocation')) {
                 return true;
             }
             if ((columnIndex === 'resource') && (!outDocument)) {
@@ -1797,17 +1811,17 @@ myApp.controller('GridController', ['$scope', '$window', '$http', function ($sco
 
             $http({
                 method: 'GET',
-                url: '../../rest/typeOfLoadUnits'
+                url: '../../rest/typeOfPallets'
             }).then(function successCallback(response) {
-                var selectOptionsTypeOfLoadUnits = [':' + translateMessages('documentGrid.allItem')];
-                var selectOptionsTypeOfLoadUnitsEdit = [':' + translateMessages('documentGrid.emptyItem')];
+                var selectOptionsTypeOfPallets = [':' + translateMessages('documentGrid.allItem')];
+                var selectOptionsTypeOfPalletsEdit = [':' + translateMessages('documentGrid.emptyItem')];
                 angular.forEach(response.data, function (value, key) {
-                    selectOptionsTypeOfLoadUnits.push(value.key + ':' + value.value);
-                    selectOptionsTypeOfLoadUnitsEdit.push(value.key + ':' + value.value);
+                    selectOptionsTypeOfPallets.push(value.key + ':' + value.value);
+                    selectOptionsTypeOfPalletsEdit.push(value.key + ':' + value.value);
                 });
 
-                getColModelByIndex('typeOfLoadUnit', config).editoptions.value = selectOptionsTypeOfLoadUnitsEdit.join(';');
-                getColModelByIndex('typeOfLoadUnit', config).searchoptions.value = selectOptionsTypeOfLoadUnits.join(';');
+                getColModelByIndex('typeOfPallet', config).editoptions.value = selectOptionsTypeOfPalletsEdit.join(';');
+                getColModelByIndex('typeOfPallet', config).searchoptions.value = selectOptionsTypeOfPallets.join(';');
 
                 $http({
                     method: 'GET',

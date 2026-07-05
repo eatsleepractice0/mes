@@ -124,20 +124,12 @@
                         </component>
                     </layoutElement>
                     <layoutElement column="1" row="7" width="5">
-                        <component type="input" name="conversion" field="conversion"
-                                   reference="conversion">
-                            <listener event="onInputChange"
-                                      class="com.qcadoo.mes.materialFlowResources.hooks.ResourceDetailsHooks"
-                                      method="onConversionChange"/>
-                        </component>
-                    </layoutElement>
-                    <layoutElement column="1" row="8" width="5">
                         <component type="input" name="price" field="price"
                                    reference="price" defaultEnabled="true">
                             <option type="alignment" value="right"/>
                         </component>
                     </layoutElement>
-                    <layoutElement column="6" row="8" width="1">
+                    <layoutElement column="6" row="7" width="1">
                         <component type="input" name="priceCurrency" reference="priceCurrency"
                                    defaultEnabled="false" hasLabel="false">
                             <option type="textRepresentationOnDisabled" value="true"/>
@@ -163,27 +155,29 @@
                         </component>
                     </layoutElement>
                     <layoutElement column="7" row="2" width="5">
-                        <component type="calendar" name="createDate" field="createDate"
-                                   reference="createDate" defaultEnabled="false">
-                            <option type="withTimePicker" value="true"/>
-                        </component>
-                    </layoutElement>
-                    <layoutElement column="7" row="3" width="5">
                         <component type="calendar" name="time" field="time"
                                    reference="time" defaultEnabled="false">
                             <option type="withTimePicker" value="true"/>
                         </component>
                     </layoutElement>
-                    <layoutElement column="7" row="4" width="5">
+                    <layoutElement column="7" row="3" width="5">
                         <component type="calendar" name="productionDate" field="productionDate"
                                    reference="productionDate" defaultEnabled="false">
                             <option type="withTimePicker" value="false"/>
                         </component>
                     </layoutElement>
-                    <layoutElement column="7" row="5" width="5">
+                    <layoutElement column="7" row="4" width="5">
                         <component type="calendar" name="expirationDate" field="expirationDate"
                                    reference="expirationDate" defaultEnabled="true">
                             <option type="withTimePicker" value="false"/>
+                        </component>
+                    </layoutElement>
+                    <layoutElement column="7" row="5" width="5">
+                        <component type="input" name="conversion" field="conversion"
+                                   reference="conversion">
+                            <listener event="onInputChange"
+                                      class="com.qcadoo.mes.materialFlowResources.hooks.ResourceDetailsHooks"
+                                      method="onConversionChange"/>
                         </component>
                     </layoutElement>
                     <layoutElement column="7" row="6" width="5">
@@ -198,18 +192,12 @@
 
                             <listener event="onSelectedEntityChange"
                                       class="com.qcadoo.mes.materialFlowResources.listeners.ResourceDetailsListeners"
-                                      method="fillTypeOfLoadUnitField"/>
+                                      method="fillTypeOfPalletField"/>
                         </component>
                     </layoutElement>
                     <layoutElement column="7" row="7" width="5">
-                        <component type="lookup" name="typeOfLoadUnit" field="typeOfLoadUnit"
-                                   reference="typeOfLoadUnit">
-
-                            <option type="searchable" value="name"/>
-                            <option type="orderable" value="name"/>
-
-                            <option type="expression" value="#name"/>
-                            <option type="fieldCode" value="name"/>
+                        <component type="select" name="typeOfPallet" field="typeOfPallet"
+                                   reference="typeOfPallet">
                         </component>
                     </layoutElement>
                     <layoutElement column="7" row="8" width="5">

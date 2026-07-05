@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class ProductsToIssueDetailsListeners {
@@ -52,8 +51,7 @@ public class ProductsToIssueDetailsListeners {
         productToIssueDetailsHooks.onBeforeRender(view);
     }
 
-    public void onDemandQuantityChange(final ViewDefinitionState view, final ComponentState state,
-                                       final String[] args) {
+    public void onDemandQuantityChange(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         FormComponent productToIssueForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
 
         Entity productToIssue = productToIssueForm.getPersistedEntityWithIncludedFormValues();
@@ -71,15 +69,14 @@ public class ProductsToIssueDetailsListeners {
 
             Entity product = productToIssue.getBelongsToField(ProductsToIssueFields.PRODUCT);
             BigDecimal newAdditionalQuantity = calculationQuantityService.calculateAdditionalQuantity(demandQuantity, conversion,
-                    Optional.ofNullable(product.getStringField(ProductFields.ADDITIONAL_UNIT)).orElse(product.getStringField(ProductFields.UNIT)));
+                    product.getStringField(ProductFields.ADDITIONAL_UNIT));
 
             additionalDemandQuantity.setFieldValue(numberService.formatWithMinimumFractionDigits(newAdditionalQuantity, 0));
             additionalDemandQuantity.requestComponentUpdateState();
         }
     }
 
-    public void onAdditionalDemandQuantityChange(final ViewDefinitionState view, final ComponentState state,
-                                                 final String[] args) {
+    public void onAdditionalDemandQuantityChange(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         FormComponent productToIssueForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
 
         Entity productToIssue = productToIssueForm.getPersistedEntityWithIncludedFormValues();

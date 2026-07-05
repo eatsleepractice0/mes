@@ -23,29 +23,38 @@
  */
 package com.qcadoo.mes.productFlowThruDivision.hooks;
 
-import com.qcadoo.mes.materialFlowResources.constants.DivisionFieldsMFR;
-import com.qcadoo.mes.productFlowThruDivision.constants.DivisionFieldsPFTD;
-import com.qcadoo.mes.productFlowThruDivision.constants.TechnologyFieldsPFTD;
-import com.qcadoo.mes.technologies.constants.TechnologyOperationComponentFields;
-import com.qcadoo.model.api.DataDefinition;
-import com.qcadoo.model.api.Entity;
-import com.qcadoo.model.api.search.SearchRestrictions;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.qcadoo.mes.materialFlowResources.constants.DivisionFieldsMFR;
+import com.qcadoo.mes.productFlowThruDivision.constants.DivisionFieldsPFTD;
+import com.qcadoo.mes.productFlowThruDivision.constants.ProductFlowThruDivisionConstants;
+import com.qcadoo.mes.productFlowThruDivision.constants.Range;
+import com.qcadoo.mes.productFlowThruDivision.constants.TechnologyFieldsPFTD;
+import com.qcadoo.mes.technologies.constants.TechnologyFields;
+import com.qcadoo.mes.technologies.constants.TechnologyOperationComponentFields;
+import com.qcadoo.model.api.DataDefinition;
+import com.qcadoo.model.api.DataDefinitionService;
+import com.qcadoo.model.api.Entity;
+import com.qcadoo.model.api.search.SearchRestrictions;
+
 @Service
 public class TechnologyOperationComponentHooksPFTD {
+
+    @Autowired
+    private DataDefinitionService dataDefinitionService;
 
     public void onSave(final DataDefinition technologyOperationComponentDD, final Entity technologyOperationComponent) {
         fillRangeAndDivision(technologyOperationComponentDD, technologyOperationComponent);
     }
 
-    private void fillRangeAndDivision(DataDefinition technologyOperationComponentDD,
-                                      Entity technologyOperationComponent) {
-        if (technologyOperationComponent.isCopied()) {
+    private void fillRangeAndDivision(DataDefinition technologyOperationComponentDD, Entity technologyOperationComponent) {
+        if(technologyOperationComponent.isCopied()) {
             return;
         }
         Entity division = technologyOperationComponent.getBelongsToField(TechnologyOperationComponentFields.DIVISION);
@@ -64,15 +73,28 @@ public class TechnologyOperationComponentHooksPFTD {
                         .filter(e -> technologyOperationComponentId == null || !e.getId().equals(technologyOperationComponentId))
                         .filter(e -> e.getBelongsToField(TechnologyOperationComponentFields.DIVISION) != null)
                         .map(e -> e.getBelongsToField(TechnologyOperationComponentFields.DIVISION).getId()).collect(Collectors.toSet());
-                if (divisionIds.size() <= 1 && (divisionIds.size() != 1 || divisionIds.contains(division.getId()))) {
-                    fillLocationsForOneDivisionRange(technology, division);
+                if (divisionIds.size() > 1 || divisionIds.size() == 1 && !divisionIds.contains(division.getId())) {
+                    technology.setField(TechnologyFieldsPFTD.RANGE, Range.MANY_DIVISIONS.getStringValue());
+                    technology.setField(TechnologyFieldsPFTD.DIVISION, null);
+                    technology.getDataDefinition().save(technology);
+                } else if (!Range.ONE_DIVISION.getStringValue().equals(technology.getField(TechnologyFieldsPFTD.RANGE))
+                        || !Objects.equals(technology.getField(TechnologyFieldsPFTD.DIVISION), division)) {
+                    technology.setField(TechnologyFieldsPFTD.RANGE, Range.ONE_DIVISION.getStringValue());
+                    technology.setField(TechnologyFieldsPFTD.DIVISION, division);
+                    Long[] productionLinesIds = technology.getHasManyField(TechnologyFields.PRODUCTION_LINES).stream().map(Entity::getId).toArray(Long[]::new);
+                    if (productionLinesIds.length > 0) {
+                        getTechnologyProductionLineDD().delete(productionLinesIds);
+                    }
+                    fillLocationsForOneDivisionRange(technology);
                     technology.getDataDefinition().fastSave(technology);
                 }
             }
         }
     }
 
-    private void fillLocationsForOneDivisionRange(Entity technology, Entity division) {
+    private void fillLocationsForOneDivisionRange(Entity technology) {
+        Entity division = technology.getBelongsToField(TechnologyFieldsPFTD.DIVISION);
+
         technology.setField(TechnologyFieldsPFTD.COMPONENTS_LOCATION, division.getBelongsToField(DivisionFieldsMFR.COMPONENTS_LOCATION));
         technology.setField(TechnologyFieldsPFTD.COMPONENTS_OUTPUT_LOCATION, division.getBelongsToField(DivisionFieldsMFR.COMPONENTS_OUTPUT_LOCATION));
         technology.setField(TechnologyFieldsPFTD.PRODUCTS_INPUT_LOCATION, division.getBelongsToField(DivisionFieldsMFR.PRODUCTS_INPUT_LOCATION));
@@ -81,11 +103,15 @@ public class TechnologyOperationComponentHooksPFTD {
         technology.setField(TechnologyFieldsPFTD.PRODUCTION_FLOW, division.getStringField(TechnologyFieldsPFTD.PRODUCTION_FLOW));
     }
 
-    private List<Entity> getTechnologyOperationComponents(DataDefinition technologyOperationComponentDD,
-                                                          final Entity technology) {
+    private List<Entity> getTechnologyOperationComponents(DataDefinition technologyOperationComponentDD, final Entity technology) {
         return technologyOperationComponentDD.find()
                 .add(SearchRestrictions.belongsTo(TechnologyOperationComponentFields.TECHNOLOGY, technology)).list()
                 .getEntities();
+    }
+
+    private DataDefinition getTechnologyProductionLineDD() {
+        return dataDefinitionService.get(ProductFlowThruDivisionConstants.PLUGIN_IDENTIFIER,
+                ProductFlowThruDivisionConstants.MODEL_TECHNOLOGY_PRODUCTION_LINE);
     }
 
 }

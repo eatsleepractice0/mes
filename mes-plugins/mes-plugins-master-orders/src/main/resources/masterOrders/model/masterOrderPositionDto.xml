@@ -45,7 +45,7 @@
         <string name="technologyName"/>
         <string name="salesPlanNumber"/>
         <string name="salesPlanName"/>
-        <dictionary name="masterOrderPositionStatus" dictionary="masterOrderPositionStatus"/>
+        <string name="masterOrderPositionStatus"/>
         <string name="comments"/>
         <decimal name="masterOrderQuantity"/>
         <decimal name="cumulatedMasterOrderQuantity"/>
@@ -53,8 +53,6 @@
         <decimal name="producedOrderQuantity"/>
         <decimal name="quantityTakenFromWarehouse"/>
         <decimal name="quantityRemainingToOrder"/>
-        <decimal name="releaseQuantity"/>
-        <decimal name="quantityToRelease"/>
         <decimal name="quantityRemainingToOrderWithoutStock"/>
         <decimal name="warehouseMinimumStateQuantity"/>
         <decimal name="warehouseState"/>
@@ -71,9 +69,6 @@
         <enum name="state" values="01new,02inExecution,03completed,04declined"/>
         <string name="description"/>
         <boolean name="warehouseOrder"/>
-        <decimal name="price"/>
-        <string name="supplier"/>
-        <string name="baseOrderId"/>
     </fields>
 
     <masterModel plugin="masterOrders" model="masterOrderProduct"/>

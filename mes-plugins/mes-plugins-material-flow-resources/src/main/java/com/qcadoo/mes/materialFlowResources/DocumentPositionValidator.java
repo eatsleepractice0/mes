@@ -114,8 +114,10 @@ public class DocumentPositionValidator {
         DocumentType documentType = DocumentType.parseString(document.getType());
 
         if (documentType == DocumentType.RECEIPT || documentType == DocumentType.INTERNAL_INBOUND) {
+            LocationDTO warehouseTo = getWarehouseById(document.getLocationTo_id());
 
-            return validatePositionAttributes(position);
+            return validatePositionAttributes(position, warehouseTo.isRequirePrice(), warehouseTo.isRequirebatch(),
+                    warehouseTo.isRequirEproductionDate(), warehouseTo.isRequirEexpirationDate());
         }
 
         return Lists.newArrayList();
@@ -272,16 +274,24 @@ public class DocumentPositionValidator {
         return availableQuantity;
     }
 
-    private List<String> validatePositionAttributes(final DocumentPositionDTO position) {
+    private List<String> validatePositionAttributes(final DocumentPositionDTO position, final boolean requirePrice,
+                                                    final boolean requireBatch, boolean requireProductionDate,
+                                                    boolean requireExpirationDate) {
         List<String> errors = Lists.newArrayList();
 
-        Map<String, Object> product = getProductByNumber(position.getProduct());
+        if (requirePrice && (Objects.isNull(position.getPrice()) || BigDecimal.ZERO.compareTo(position.getPrice()) == 0)) {
+            errors.add("documentGrid.error.position.price.required");
+        }
 
-        if (product.get("batchevidence") != null && (boolean) product.get("batchevidence") && (Objects.isNull(position.getBatch()) || position.getBatch().trim().isEmpty())) {
+        if (requireBatch && (Objects.isNull(position.getBatch()) || position.getBatch().trim().isEmpty())) {
             errors.add("documentGrid.error.position.batch.required");
         }
 
-        if (product.get("expirationdateevidence") != null && (boolean) product.get("expirationdateevidence") && Objects.isNull(position.getExpirationDate())) {
+        if (requireProductionDate && Objects.isNull(position.getProductionDate())) {
+            errors.add("documentGrid.error.position.productionDate.required");
+        }
+
+        if (requireExpirationDate && Objects.isNull(position.getExpirationDate())) {
             errors.add("documentGrid.error.position.expirationDate.required");
         }
 
@@ -332,18 +342,13 @@ public class DocumentPositionValidator {
         return Lists.newArrayList();
     }
 
-    private Map<String, Object> getProductByNumber(final String productNumber) {
-        if (Strings.isNullOrEmpty(productNumber)) {
-            return new HashMap<>();
-        }
+    private LocationDTO getWarehouseById(final Long id) {
+        BeanPropertyRowMapper<LocationDTO> beanPropertyRowMapper = new BeanPropertyRowMapper<>(LocationDTO.class);
 
-        try {
-            return jdbcTemplate.queryForMap(
-                    "SELECT product.expirationdateevidence, product.batchevidence FROM basic_product product WHERE product.number = :number",
-                    Collections.singletonMap("number", productNumber));
-        } catch (EmptyResultDataAccessException e) {
-            return new HashMap<>();
-        }
+        beanPropertyRowMapper.setPrimitivesDefaultedForNullValue(true);
+
+        return jdbcTemplate.queryForObject("SELECT * FROM materialflow_location WHERE id = :id",
+                Collections.singletonMap("id", id), beanPropertyRowMapper);
     }
 
     private Collection<? extends String> validateQuantity(final DocumentPositionDTO position) {
@@ -451,7 +456,6 @@ public class DocumentPositionValidator {
         Long palletNumberId = tryGetPalletNumberIdByNumber(vo.getPalletNumber(), errors);
         Long storageLocationId = tryGetStorageLocationIdByNumber(vo.getStorageLocation(), errors);
         Long resourceId = tryGetResourceIdByNumber(vo.getResource(), errors);
-        Long typeOfLoadUnitId = tryGetTypeOfLoadUnitIdByNumber(vo.getTypeOfLoadUnit(), errors);
 
         params.put("id", vo.getId());
         params.put("product_id", productId);
@@ -461,7 +465,7 @@ public class DocumentPositionValidator {
         params.put("conversion", vo.getUnit().equals(vo.getGivenunit()) ? 1 : vo.getConversion());
         params.put("expirationDate", vo.getExpirationDate());
         params.put("palletnumber_id", palletNumberId);
-        params.put("typeofloadunit_id", Objects.nonNull(palletNumberId) ? typeOfLoadUnitId : null);
+        params.put("typeofpallet", Objects.nonNull(palletNumberId) ? vo.getTypeOfPallet() : null);
         params.put("storagelocation_id", storageLocationId);
         params.put("document_id", vo.getDocument());
         params.put("productionDate", vo.getProductionDate());
@@ -473,6 +477,23 @@ public class DocumentPositionValidator {
         params.put("sellingPrice", vo.getSellingPrice());
 
         return params;
+    }
+
+    private Object tryGetBatchIdByNumber(final String batch, List<String> errors) {
+        if (Strings.isNullOrEmpty(batch)) {
+            return null;
+        }
+
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT _batch.id FROM advancedgenealogy_batch _batch WHERE _batch.number = :number",
+                    Collections.singletonMap("number", batch), Long.class);
+        } catch (EmptyResultDataAccessException e) {
+            errors.add(translationService.translate("documentGrid.error.position.batchNotFound",
+                    LocaleContextHolder.getLocale(), batch));
+
+            return null;
+        }
     }
 
     private Long tryGetProductIdByNumber(final String productNumber, final List<String> errors) {
@@ -487,23 +508,6 @@ public class DocumentPositionValidator {
         } catch (EmptyResultDataAccessException e) {
             errors.add(translationService.translate("documentGrid.error.position.productNotFound",
                     LocaleContextHolder.getLocale(), productNumber));
-
-            return null;
-        }
-    }
-
-    private Long tryGetTypeOfLoadUnitIdByNumber(final String typeOfLoadUnit, final List<String> errors) {
-        if (Strings.isNullOrEmpty(typeOfLoadUnit)) {
-            return null;
-        }
-
-        try {
-            return jdbcTemplate.queryForObject(
-                    "SELECT typeofloadunit.id FROM basic_typeofloadunit typeofloadunit WHERE typeofloadunit.name = :name",
-                    Collections.singletonMap("name", typeOfLoadUnit), Long.class);
-        } catch (EmptyResultDataAccessException e) {
-            errors.add(translationService.translate("documentGrid.error.position.typeOfLoadUnitNotFound",
-                    LocaleContextHolder.getLocale(), typeOfLoadUnit));
 
             return null;
         }
@@ -624,7 +628,7 @@ public class DocumentPositionValidator {
             Long positionId = position.getId();
             String storageLocationNumber = position.getStorageLocation();
             String palletNumber = position.getPalletNumber();
-            String typeOfLoadUnit = position.getTypeOfLoadUnit();
+            String typeOfPallet = position.getTypeOfPallet();
 
             if (Strings.isNullOrEmpty(storageLocationNumber) && !Strings.isNullOrEmpty(palletNumber)) {
                 errors.add(translationService.translate("documentGrid.error.position.storageLocation.required",
@@ -635,27 +639,27 @@ public class DocumentPositionValidator {
                         LocaleContextHolder.getLocale()));
             }
 
-            if (palletValidatorService.existsOtherResourceForPalletNumberOnOtherLocations(locationId, palletNumber, null)) {
+            if (palletValidatorService.existsOtherResourceForPalletNumberOnOtherLocations(locationId, storageLocationNumber, null)) {
                 errors.add(translationService.translate(
                         "documentGrid.error.position.existsOtherResourceForPallet",
-                        LocaleContextHolder.getLocale(), palletNumber));
-            } else if (palletValidatorService.existsOtherResourceForPalletNumberWithDifferentStorageLocation(locationId, storageLocationNumber,
-                    palletNumber, null)) {
+                        LocaleContextHolder.getLocale()));
+            } else if (palletValidatorService.existsOtherResourceForPalletNumberOnSameLocation(locationId, storageLocationNumber,
+                    palletNumber, typeOfPallet, null)) {
                 errors.add(translationService.translate(
                         "documentGrid.error.position.existsOtherResourceForPalletAndStorageLocation",
-                        LocaleContextHolder.getLocale(), palletNumber));
-            } else if (palletValidatorService.existsOtherResourceForPalletNumberWithDifferentType(locationId,
-                    palletNumber, typeOfLoadUnit, null)) {
-                errors.add(translationService.translate(
-                        "documentGrid.error.position.existsOtherResourceForLoadUnitAndTypeOfLoadUnit",
-                        LocaleContextHolder.getLocale(), palletNumber));
+                        LocaleContextHolder.getLocale()));
             } else if (palletValidatorService.existsOtherPositionForPalletNumber(locationId, storageLocationNumber,
-                    palletNumber, typeOfLoadUnit, positionId, documentId)) {
+                    palletNumber, typeOfPallet, positionId, documentId)) {
                 errors.add(translationService.translate(
                         "documentGrid.error.position.existsOtherPositionForPalletAndStorageLocation",
                         LocaleContextHolder.getLocale()));
+            } else if (palletValidatorService.existsOtherDeliveredProductForPalletNumber(locationId, storageLocationNumber,
+                    palletNumber, typeOfPallet, null)) {
+                errors.add(translationService.translate(
+                        "documentGrid.error.position.existsOtherDeliveredProductForPalletAndStorageLocation",
+                        LocaleContextHolder.getLocale()));
             } else if (palletValidatorService.tooManyPalletsInStorageLocationAndPositions(storageLocationNumber,
-                    palletNumber, positionId, documentId)) {
+                    palletNumber, positionId)) {
                 errors.add(translationService.translate(
                         "documentGrid.error.position.existsOtherPalletsAtStorageLocation",
                         LocaleContextHolder.getLocale()));

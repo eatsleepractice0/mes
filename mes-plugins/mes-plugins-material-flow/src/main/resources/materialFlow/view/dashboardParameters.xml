@@ -25,7 +25,7 @@
 
 -->
 <view name="dashboardParameters" modelPlugin="basic" modelName="parameter"
-      defaultAuthorizationRole="ROLE_DASHBOARD_PARAMETERS"
+      defaultAuthorizationRole="ROLE_PARAMETERS"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://schema.qcadoo.org/view"
       xsi:schemaLocation="http://schema.qcadoo.org/view http://schema.qcadoo.org/view.xsd">
@@ -85,12 +85,6 @@
                         </component>
                     </layoutElement>
                     <layoutElement column="1" row="7">
-                        <component type="checkbox" name="showProductionTrackingStaff" field="showProductionTrackingStaff"
-                                   reference="showProductionTrackingStaff" hasDescription="true">
-                            <option type="labelWidth" value="60"/>
-                        </component>
-                    </layoutElement>
-                    <layoutElement column="1" row="8">
                         <component type="select" name="dashboardOrderSorting" field="dashboardOrderSorting"
                                    reference="dashboardOrderSorting" hasDescription="true">
                             <option type="labelWidth" value="60"/>

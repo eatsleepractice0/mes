@@ -49,4 +49,5 @@ public final class ProductFlowThruDivisionConstants {
 
     public static final String MODEL_MODEL_CARD_PRODUCT = "modelCardProduct";
 
+    public static final String MODEL_TECHNOLOGY_PRODUCTION_LINE = "technologyProductionLine";
 }

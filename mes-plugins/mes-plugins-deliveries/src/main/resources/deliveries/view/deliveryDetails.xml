@@ -188,15 +188,9 @@
                         <![CDATA[
 							this.addOnChangeListener({
 								onClick: function() {
-                                    if (this.state == "draft" || this.state == "prepare" || this.state == "correct") {
-                                        if (window.confirm("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery.confirm)}")) {
-                                            #{form}.performEvent('changeState', ['05approved']);
-                                        };
-                                    } else if (this.state == "accept") {
-                                        if (window.confirm("#{translate(deliveries.deliveryDetails.window.ribbon.status.acceptDelivery.confirm)}")) {
-                                            #{form}.performEvent('changeState', ['07accepted']);
-                                        };
-									}
+									if (window.confirm("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery.confirm)}")) {
+										#{form}.performEvent('changeState', ['05approved']);
+									};
 								}
 							});
 						]]>
@@ -269,10 +263,6 @@
                     </script>
                 </bigButton>
             </group>
-            <group name="print">
-                <bigButton name="printDeliveredProductLabels" icon="pdfIcon24.png"
-                           state="enabled" action="#{form}.fireEvent(printDeliveredProductLabels);"/>
-            </group>
 
             <group name="deliveryPositions">
                 <bigButton name="assignStorageLocations"
@@ -336,6 +326,7 @@
                     </script>
                 </bigButton>
             </group>
+
         </ribbon>
 
         <windowTab name="mainTab">
@@ -363,7 +354,7 @@
 						
 						this.addOnChangeListener({
 							onSetValue: function(value) {
-								if (!value || ! value.content) {
+								if (! value || ! value.content) {
 									return;
 								}
 								
@@ -371,7 +362,7 @@
 								saveBackBtn.enable();
 								saveNewBtn.enable();
 								
-								if (!value.content.entityId) {
+								if (! value.content.entityId) {
 									cancelBtn.disable();
 									deleteBtn.disable();
 									acceptBtn.disable();
@@ -409,8 +400,6 @@
 									declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 									declineDeliveryBtn.setIcon('deleteIcon16.png');
 									approveDeliveryBtn.enable();
-                                    approveDeliveryBtn.state = "draft";
-                                    approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery)}");
 									correctDeliveryBtn.disable();
 									if(createRelatedDeliveryBtn && showRelatedDeliveriesBtn){
                                         createRelatedDeliveryBtn.disable();
@@ -427,8 +416,6 @@
 									declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 									declineDeliveryBtn.setIcon('deleteIcon16.png');
 									approveDeliveryBtn.enable();
-                                    approveDeliveryBtn.state = "prepare";
-                                    approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery)}");
 									correctDeliveryBtn.enable();
 									if(createRelatedDeliveryBtn && showRelatedDeliveriesBtn){
                                         createRelatedDeliveryBtn.disable();
@@ -445,8 +432,6 @@
 									declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 									declineDeliveryBtn.setIcon('deleteIcon16.png');
 									approveDeliveryBtn.enable();
-                                    approveDeliveryBtn.state = "correct";
-                                    approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery)}");
 									correctDeliveryBtn.disable();
                                     if(createRelatedDeliveryBtn && showRelatedDeliveriesBtn){
                                         createRelatedDeliveryBtn.disable();
@@ -462,15 +447,14 @@
 									declineDeliveryBtn.state = "decline";
 									declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 									declineDeliveryBtn.setIcon('deleteIcon16.png');
-                                    approveDeliveryBtn.enable();
-                                    approveDeliveryBtn.state = "accept";
-                                    approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.acceptDelivery)}");
+									approveDeliveryBtn.disable();
 									correctDeliveryBtn.enable();
 									if(createRelatedDeliveryBtn && showRelatedDeliveriesBtn){
                                         createRelatedDeliveryBtn.disable();
                                         showRelatedDeliveriesBtn.disable();
 									}
 								} else if (state == "06received") {
+									saveBtn.disable();
 									saveBackBtn.disable();
 									saveNewBtn.disable();
 									cancelBtn.disable();
@@ -485,20 +469,7 @@
                                         createRelatedDeliveryBtn.enable();
                                         showRelatedDeliveriesBtn.enable();
 									}
-								} else if (state == "07accepted"){
-									deleteBtn.disable();
-									acceptBtn.enable();
-									acceptBtn.state = "receive";
-									acceptBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.receiveDelivery)}");
-									acceptBtn.setIcon('acceptIcon16.png');
-									declineDeliveryBtn.disable();
-                                    approveDeliveryBtn.disable();
-									correctDeliveryBtn.disable();
-									if(createRelatedDeliveryBtn && showRelatedDeliveriesBtn){
-                                        createRelatedDeliveryBtn.disable();
-                                        showRelatedDeliveriesBtn.disable();
-									}
-                                } else {
+								} else {
 									saveBtn.disable();
 									saveBackBtn.disable();
 									saveNewBtn.disable();
@@ -707,9 +678,6 @@
                 <listener event="fillPrices"
                           class="com.qcadoo.mes.deliveries.listeners.DeliveryDetailsListeners"
                           method="fillPrices"/>
-                <listener event="printDeliveredProductLabels"
-                          class="com.qcadoo.mes.deliveries.listeners.DeliveryDetailsListeners"
-                          method="printDeliveredProductLabels"/>
             </component>
         </windowTab>
 
@@ -857,22 +825,7 @@
                     <component type="grid" name="deliveredProducts" useDto="true"
                                reference="deliveredProducts" source="#{form}.deliveredProductDtos"
                                defaultEnabled="false">
-                        <script>
-                            <![CDATA[
-                                var printDeliveredProductLabels = #{window}.getRibbonItem("print.printDeliveredProductLabels");
 
-                                var listener = {
-                                    onChange: function(selectedEntitiesArray) {
-                                        if(selectedEntitiesArray.length > 0) {
-                                            printDeliveredProductLabels.enable("#{translate(deliveries.deliveryDetails.window.ribbon.print.printDeliveredProductLabels.description)}");
-                                        } else {
-                                            printDeliveredProductLabels.disable("#{translate(deliveries.deliveryDetails.window.ribbon.print.printDeliveredProductLabels.description)}");
-                                        }
-                                    }
-                                }
-                                this.addOnChangeListener(listener);
-                            ]]>
-                        </script>
                         <option type="column" name="succession" fields="succession"
                                 width="30"/>
                         <option type="column" name="productNumber" fields="productNumber" link="true" width="80"/>
@@ -897,7 +850,7 @@
                                 width="80"/>
                         <option type="column" name="palletNumber" fields="palletNumber"
                                 width="80"/>
-                        <option type="column" name="typeOfLoadUnit" fields="typeOfLoadUnit"
+                        <option type="column" name="palletType" fields="palletType"
                                 width="45"/>
                         <option type="column" name="isWaste" fields="isWaste"
                                 width="45"/>
@@ -912,9 +865,9 @@
                         <option type="order" column="succession" direction="asc"/>
 
                         <option type="searchable"
-                                value="succession,productNumber,productName,deliveredQuantity,damagedQuantity,productUnit,additionalQuantity,additionalUnit,conversion,pricePerUnit,totalPrice,storageLocationNumber,palletNumber,typeOfLoadUnit,isWaste,batchNumber,damaged,expirationDate"/>
+                                value="succession,productNumber,productName,deliveredQuantity,damagedQuantity,productUnit,additionalQuantity,additionalUnit,conversion,pricePerUnit,totalPrice,storageLocationNumber,palletNumber,palletType,isWaste,batchNumber,damaged,expirationDate"/>
                         <option type="orderable"
-                                value="succession,productNumber,productName,deliveredQuantity,damagedQuantity,productUnit,additionalQuantity,additionalUnit,conversion,pricePerUnit,totalPrice,storageLocationNumber,palletNumber,typeOfLoadUnit,isWaste,batchNumber,damaged,expirationDate"/>
+                                value="succession,productNumber,productName,deliveredQuantity,damagedQuantity,productUnit,additionalQuantity,additionalUnit,conversion,pricePerUnit,totalPrice,storageLocationNumber,palletNumber,palletType,isWaste,batchNumber,damaged,expirationDate"/>
 
                         <option type="correspondingView" value="deliveries/deliveredProductDetails"/>
                         <option type="correspondingComponent" value="form"/>
@@ -925,7 +878,6 @@
                         <option type="fullscreen" value="true"/>
                         <option type="multiselect" value="true"/>
                         <option type="fixedHeight" value="true"/>
-                        <option type="selectableWhenDisabled" value="true"/>
 
                         <listener event="select" method="disableShowProductButton"
                                   class="com.qcadoo.mes.deliveries.listeners.DeliveryDetailsListeners"/>
@@ -1048,35 +1000,8 @@
                 </layoutElement>
             </component>
         </windowTab>
-        <windowTab name="paymentTab" reference="paymentTab">
-            <component type="gridLayout" name="gridLayout" columns="3"
-                       rows="5">
-                <layoutElement column="1" row="1">
-                    <component type="checkbox" name="releasedForPayment"
-                               reference="releasedForPayment" field="#{form}.releasedForPayment">
-                        <listener event="onChange"
-                                  class="com.qcadoo.mes.deliveries.listeners.DeliveryDetailsListeners"
-                                  method="onReleasedForPaymentChange"/>
-                    </component>
-                </layoutElement>
-                <layoutElement column="1" row="2">
-                    <component type="calendar" name="dateOfReleasedForPayment" field="#{form}.dateOfReleasedForPayment" reference="dateOfReleasedForPayment" defaultEnabled="never"/>
-                </layoutElement>
-                <layoutElement column="1" row="3">
-                    <component type="checkbox" name="paid"
-                               reference="paid" field="#{form}.paid">
-                    </component>
-                </layoutElement>
-                <layoutElement column="1" row="4">
-                    <component type="calendar" name="paymentDate" field="#{form}.paymentDate" reference="paymentDate"/>
-                </layoutElement>
-                <layoutElement column="1" row="5">
-                    <component type="input" name="paymentID" field="#{form}.paymentID"
-                               reference="paymentID">
-                    </component>
-                </layoutElement>
-            </component>
-        </windowTab>
+
+
     </component>
 
     <hooks>

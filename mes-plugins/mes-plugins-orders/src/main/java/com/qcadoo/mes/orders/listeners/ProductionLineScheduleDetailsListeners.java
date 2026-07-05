@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.qcadoo.mes.orders.constants.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,14 @@ import com.qcadoo.mes.newstates.StateExecutorService;
 import com.qcadoo.mes.orders.ProductionLineScheduleService;
 import com.qcadoo.mes.orders.ProductionLineScheduleServicePPSExecutorService;
 import com.qcadoo.mes.orders.ProductionLineScheduleServicePSExecutorService;
+import com.qcadoo.mes.orders.constants.DurationOfOrderCalculatedOnBasis;
+import com.qcadoo.mes.orders.constants.OrderFields;
+import com.qcadoo.mes.orders.constants.OrdersConstants;
+import com.qcadoo.mes.orders.constants.ParameterFieldsO;
+import com.qcadoo.mes.orders.constants.ProductionLineAssignCriterion;
+import com.qcadoo.mes.orders.constants.ProductionLineScheduleFields;
+import com.qcadoo.mes.orders.constants.ProductionLineSchedulePositionFields;
+import com.qcadoo.mes.orders.constants.ProductionLineScheduleSortOrder;
 import com.qcadoo.mes.orders.states.ProductionLineScheduleServiceMarker;
 import com.qcadoo.mes.orders.validators.ProductionLineSchedulePositionValidators;
 import com.qcadoo.mes.productionLines.constants.ProductionLineFields;
@@ -76,13 +83,13 @@ public class ProductionLineScheduleDetailsListeners {
             return;
         }
         FormComponent formComponent = (FormComponent) state;
-        Entity schedule = formComponent.getPersistedEntityWithIncludedFormValues();
-        List<Entity> orders = schedule.getManyToManyField(ProductionLineScheduleFields.ORDERS);
+        GridComponent ordersGrid = (GridComponent) view.getComponentByReference(ProductionLineScheduleFields.ORDERS);
+        List<Entity> orders = ordersGrid.getEntities();
         if (orders.isEmpty()) {
             view.addMessage("orders.error.productionLineScheduleNoOrders", ComponentState.MessageType.INFO);
             return;
         }
-        schedule = getOrders(orders, schedule);
+        Entity schedule = getOrders(orders, formComponent.getEntity());
         formComponent.setEntity(schedule);
         Entity parameter = parameterService.getParameter();
         if (DurationOfOrderCalculatedOnBasis.PLAN_FOR_SHIFT.getStringValue()

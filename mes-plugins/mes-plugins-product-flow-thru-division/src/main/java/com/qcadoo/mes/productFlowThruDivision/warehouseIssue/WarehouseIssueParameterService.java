@@ -20,7 +20,9 @@ public class WarehouseIssueParameterService {
 
         if (productsSource != null) {
             WarehouseIssueProductsSource warehouseIssueProductsSource = WarehouseIssueProductsSource.parseString(productsSource);
-            return WarehouseIssueProductsSource.ORDER.equals(warehouseIssueProductsSource);
+            if (WarehouseIssueProductsSource.ORDER.equals(warehouseIssueProductsSource)) {
+                return true;
+            }
         }
         return false;
     }
@@ -30,9 +32,9 @@ public class WarehouseIssueParameterService {
         return DrawnDocuments.parseString(drawnDocument);
     }
 
-    public DocumentsStatus getDocumentStatusCreatedDocument() {
-        String documentStatus = parameterService.getParameter().getStringField(ParameterFieldsPFTD.DOCUMENTS_STATUS);
-        return DocumentsStatus.parseString(documentStatus);
+    public DocumentsStatus getDocuemtStatusCreatedDocuemnt() {
+        String docuemntStatus = parameterService.getParameter().getStringField(ParameterFieldsPFTD.DOCUMENTS_STATUS);
+        return DocumentsStatus.parseString(docuemntStatus);
     }
 
     public ProductsToIssue getProductsToIssue() {

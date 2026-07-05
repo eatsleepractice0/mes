@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -32,12 +32,10 @@ import com.qcadoo.mes.materialFlowResources.exceptions.InvalidResourceException;
 import com.qcadoo.mes.materialFlowResources.service.DocumentService;
 import com.qcadoo.mes.materialFlowResources.service.ResourceManagementService;
 import com.qcadoo.model.api.DataDefinition;
-import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
-import com.qcadoo.model.api.search.JoinType;
-import com.qcadoo.model.api.search.SearchRestrictions;
 import com.qcadoo.model.api.validators.ErrorMessage;
 import com.qcadoo.view.api.ComponentState;
+import com.qcadoo.view.api.components.FormComponent;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -57,9 +55,6 @@ public class DocumentValidators {
 
     @Autowired
     private PalletValidatorService palletValidatorService;
-
-    @Autowired
-    private DataDefinitionService dataDefinitionService;
 
     public boolean validate(final DataDefinition documentDD, final Entity document) {
         Long documentId = document.getId();
@@ -169,8 +164,7 @@ public class DocumentValidators {
         return true;
     }
 
-    private boolean checkIfWarehouseHasChanged(final Entity oldDocument, final Entity newDocument,
-                                               final String warehouseField) {
+    private boolean checkIfWarehouseHasChanged(final Entity oldDocument, final Entity newDocument, final String warehouseField) {
         Entity oldWarehouse = oldDocument.getBelongsToField(warehouseField);
         Entity newWarehouse = newDocument.getBelongsToField(warehouseField);
 
@@ -183,7 +177,7 @@ public class DocumentValidators {
         return true;
     }
 
-    public void validatePositionsAndCreateResources(final ComponentState documentForm, final Entity document) {
+    public void validatePositionsAndCreateResources(final FormComponent documentForm, final Entity document) {
         if (!document.getHasManyField(DocumentFields.POSITIONS).isEmpty()) {
             if (validatePositions(document)) {
                 String blockedResources = documentService.getBlockedResources(document);
@@ -199,31 +193,13 @@ public class DocumentValidators {
                         String resourceNumber = ire.getEntity().getStringField(ResourceFields.NUMBER);
 
                         ErrorMessage batchError = ire.getEntity().getError(ResourceFields.BATCH);
-                        ErrorMessage expirationDateError = ire.getEntity().getError(ResourceFields.EXPIRATION_DATE);
 
                         if (Objects.nonNull(batchError) && "materialFlow.error.position.batch.required".equals(batchError.getMessage())) {
                             documentForm.addMessage("materialFlow.document.validate.global.error.invalidResource.batchRequired",
                                     ComponentState.MessageType.FAILURE, false, productNumber);
-                        } else if (Objects.nonNull(expirationDateError) && "materialFlow.error.position.expirationDate.required".equals(expirationDateError.getMessage())) {
-                            documentForm.addMessage("materialFlow.document.validate.global.error.invalidResource.expirationDateRequired",
-                                    ComponentState.MessageType.FAILURE, false, productNumber);
                         } else {
-                            if (ire.getErrors().values().stream().anyMatch(e -> e.getMessage().equals("documentGrid.error.position.existsOtherResourceForPallet"))) {
-                                documentForm.addMessage("documentGrid.error.position.existsOtherResourceForPallet",
-                                        ComponentState.MessageType.FAILURE, false, ire.getEntity().getBelongsToField(ResourceFields.PALLET_NUMBER).getStringField(PalletNumberFields.NUMBER));
-                            } else if (ire.getErrors().values().stream().anyMatch(e -> e.getMessage().equals("documentGrid.error.position.existsOtherResourceForPalletAndStorageLocation"))) {
-                                documentForm.addMessage("documentGrid.error.position.existsOtherResourceForPalletAndStorageLocation",
-                                        ComponentState.MessageType.FAILURE, false, ire.getEntity().getBelongsToField(ResourceFields.PALLET_NUMBER).getStringField(PalletNumberFields.NUMBER));
-                            } else if (ire.getErrors().values().stream().anyMatch(e -> e.getMessage().equals("documentGrid.error.position.existsOtherResourceForLoadUnitAndTypeOfLoadUnit"))) {
-                                documentForm.addMessage("documentGrid.error.position.existsOtherResourceForLoadUnitAndTypeOfLoadUnit",
-                                        ComponentState.MessageType.FAILURE, false, ire.getEntity().getBelongsToField(ResourceFields.PALLET_NUMBER).getStringField(PalletNumberFields.NUMBER));
-                            } else if (ire.getGlobalErrors().stream().anyMatch(e -> e.getMessage().equals("materialFlow.document.validate.global.error.position.palletsWithReservationsExists"))) {
-                                documentForm.addMessage("materialFlow.document.validate.global.error.position.palletsWithReservationsExists",
-                                        ComponentState.MessageType.FAILURE, false, resourceNumber);
-                            } else {
-                                documentForm.addMessage("materialFlow.document.validate.global.error.invalidResource",
-                                        ComponentState.MessageType.FAILURE, false, resourceNumber, productNumber);
-                            }
+                            documentForm.addMessage("materialFlow.document.validate.global.error.invalidResource",
+                                    ComponentState.MessageType.FAILURE, false, resourceNumber, productNumber);
                         }
                     }
                 } else {
@@ -280,8 +256,8 @@ public class DocumentValidators {
                             } else {
                                 String palletNumberNumber = palletNumber.getStringField(PalletNumberFields.NUMBER);
 
-                                if (palletValidatorService.tooManyPalletsInStorageLocationAndPositions(storageLocationNumber, palletNumberNumber, position.getId(), document.getId())) {
-                                    existsMorePallets.add(storageLocation.getStringField(StorageLocationFields.NUMBER));
+                                if (palletValidatorService.tooManyPalletsInStorageLocationAndPositions(storageLocationNumber, palletNumberNumber, position.getId())) {
+                                    existsMorePallets.add(positionNumber.toString());
                                 }
                             }
                         }
@@ -304,92 +280,9 @@ public class DocumentValidators {
 
                 isValid = false;
             }
-        } else if (DocumentType.TRANSFER.getStringValue().equals(type)) {
-            Entity storageLocation = document.getBelongsToField(DocumentFields.LOCATION_TO).getBelongsToField(LocationFieldsMFR.TRANSFER_STORAGE_LOCATION);
-            if (Objects.nonNull(storageLocation)) {
-                String number = document.getStringField(DocumentFields.NUMBER);
-                List<Entity> positions = document.getHasManyField(DocumentFields.POSITIONS);
-                Set<String> missingPalletNumbers = Sets.newHashSet();
-                Set<String> existsMorePallets = Sets.newHashSet();
-                Set<String> resourcesNotInDocument = Sets.newHashSet();
-                boolean placeStorageLocation = storageLocation.getBooleanField(StorageLocationFields.PLACE_STORAGE_LOCATION);
-                if (placeStorageLocation && !document.getBooleanField(DocumentFields.LOAD_UNITS_TRANSFER)) {
-                    document.addGlobalError("materialFlow.document.validate.global.error.placeStorageLocation.notLoadUnitsTransfer", number);
-
-                    isValid = false;
-                }
-                positions.forEach(position -> {
-                    Integer positionNumber = position.getIntegerField(PositionFields.NUMBER);
-                    Entity palletNumber = position.getBelongsToField(PositionFields.PALLET_NUMBER);
-
-                    String storageLocationNumber = storageLocation.getStringField(StorageLocationFields.NUMBER);
-
-                    if (placeStorageLocation) {
-                        if (Objects.isNull(palletNumber)) {
-                            missingPalletNumbers.add(positionNumber.toString());
-                        } else {
-                            String palletNumberNumber = palletNumber.getStringField(PalletNumberFields.NUMBER);
-
-                            if (document.getBooleanField(DocumentFields.LOAD_UNITS_TRANSFER)) {
-                                resourcesExistInDocument(document, resourcesNotInDocument, palletNumberNumber);
-                            }
-                            if (palletValidatorService.tooManyPalletsInStorageLocationAndPositionsForTransfer(storageLocationNumber, palletNumberNumber, position.getId(), document.getId())) {
-                                existsMorePallets.add(storageLocationNumber);
-                            }
-                        }
-                    }
-                });
-
-                if (!missingPalletNumbers.isEmpty()) {
-                    document.addGlobalError("materialFlow.document.validate.global.error.position.palletNumberRequired", number, String.join(", ", missingPalletNumbers));
-
-                    isValid = false;
-                }
-                if (!existsMorePallets.isEmpty()) {
-                    document.addGlobalError("materialFlow.document.validate.global.error.position.morePalletsExists", number, String.join(", ", existsMorePallets));
-
-                    isValid = false;
-                }
-                if (!resourcesNotInDocument.isEmpty()) {
-                    document.addGlobalError("materialFlow.document.validate.global.error.placeStorageLocation.resourcesNotInDocument", number, String.join(", ", resourcesNotInDocument));
-
-                    isValid = false;
-                }
-            }
         }
 
         return isValid;
     }
 
-    private void resourcesExistInDocument(Entity document, Set<String> resourcesNotInDocument, String palletNumberNumber) {
-        List<Entity> resources = getResourcesForLoadUnit(palletNumberNumber);
-        for (Entity resource : resources) {
-            boolean hasPositionInDocument = false;
-            for (Entity resourcePosition : resource.getHasManyField(ResourceFields.POSITIONS)) {
-                if (resourcePosition.getBelongsToField(PositionFields.DOCUMENT).getId().equals(document.getId())) {
-                    hasPositionInDocument = true;
-                    break;
-                }
-            }
-            if (!hasPositionInDocument) {
-                resourcesNotInDocument.add(resource.getStringField(ResourceFields.NUMBER));
-
-                break;
-            }
-        }
-    }
-
-    private List<Entity> getResourcesForLoadUnit(String loadUnitNumber) {
-        DataDefinition resourceDD = resourceDataDefinition();
-        return resourceDD
-                .find()
-                .createAlias(ResourceFields.PALLET_NUMBER, ResourceFields.PALLET_NUMBER, JoinType.INNER)
-                .add(SearchRestrictions.eq(ResourceFields.PALLET_NUMBER + "." + PalletNumberFields.NUMBER,
-                        loadUnitNumber)).list().getEntities();
-    }
-
-    private DataDefinition resourceDataDefinition() {
-        return dataDefinitionService.get(MaterialFlowResourcesConstants.PLUGIN_IDENTIFIER,
-                MaterialFlowResourcesConstants.MODEL_RESOURCE);
-    }
 }

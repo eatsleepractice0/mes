@@ -98,16 +98,7 @@ public class CurrencyService {
                         ? numberService.setScaleWithDefaultMathContext(v.multiply(exRate, numberService.getMathContext()))
                         : v)
                 .orElse(null);
-    }
 
-    public BigDecimal getRevertedValue(final BigDecimal value, final Entity currency) {
-        BigDecimal exRate = currency.getDecimalField(CurrencyFields.EXCHANGE_RATE);
-
-        return Optional.ofNullable(value)
-                .map(v -> exRateExists(exRate)
-                        ? numberService.setScaleWithDefaultMathContext(v.divide(exRate, numberService.getMathContext()))
-                        : v)
-                .orElse(null);
     }
 
     private boolean exRateExists(final BigDecimal exRate) {

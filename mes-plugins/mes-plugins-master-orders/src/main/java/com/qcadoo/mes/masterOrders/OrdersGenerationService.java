@@ -6,6 +6,7 @@ import com.qcadoo.mes.basic.constants.BasicConstants;
 import com.qcadoo.mes.basic.constants.ProductFields;
 import com.qcadoo.mes.lineChangeoverNorms.ChangeoverNormsService;
 import com.qcadoo.mes.lineChangeoverNorms.constants.LineChangeoverNormsFields;
+import com.qcadoo.mes.lineChangeoverNormsForOrders.LineChangeoverNormsForOrdersService;
 import com.qcadoo.mes.masterOrders.constants.OrderFieldsMO;
 import com.qcadoo.mes.orders.OrderService;
 import com.qcadoo.mes.orders.TechnologyServiceO;
@@ -58,6 +59,9 @@ public class OrdersGenerationService {
     private ChangeoverNormsService changeoverNormsService;
 
     @Autowired
+    private LineChangeoverNormsForOrdersService lineChangeoverNormsForOrdersService;
+
+    @Autowired
     private ParameterService parameterService;
 
     @Autowired
@@ -69,8 +73,7 @@ public class OrdersGenerationService {
     @Autowired
     private NumberGeneratorService numberGeneratorService;
 
-    public void createOrders(final GenerationOrderResult result, final Set<Long> ids, final BigDecimal plannedQuantity,
-                             final Date dateFrom,
+    public void createOrders(final GenerationOrderResult result, final Set<Long> ids, final BigDecimal plannedQuantity, final Date dateFrom,
                              final Date dateTo) {
         Entity parameter = parameterService.getParameter();
 
@@ -103,8 +106,7 @@ public class OrdersGenerationService {
         });
     }
 
-    public void createPps(final GenerationOrderResult result, final Entity parameter, boolean automaticPps,
-                          final Entity order) {
+    public void createPps(final GenerationOrderResult result, final Entity parameter, boolean automaticPps, final Entity order) {
         if (order.isValid() && automaticPps && !parameter.getBooleanField(L_ORDERS_GENERATION_NOT_COMPLETE_DATES)) {
             List<Entity> orders = getOrderAndSubOrders(order.getId());
 
@@ -169,8 +171,7 @@ public class OrdersGenerationService {
     }
 
     @Transactional
-    public Entity createOrder(final Entity parameter, Entity technology, final Entity product,
-                              final BigDecimal plannedQuantity,
+    public Entity createOrder(final Entity parameter, Entity technology, final Entity product, final BigDecimal plannedQuantity,
                               final Entity salesPlan, final Date dateFrom, final Date dateTo) {
         Entity order = getOrderDD().create();
 

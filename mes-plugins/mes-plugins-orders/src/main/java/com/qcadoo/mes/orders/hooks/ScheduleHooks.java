@@ -31,12 +31,6 @@ public class ScheduleHooks {
     }
 
     public void onSave(final DataDefinition scheduleDD, final Entity schedule) {
-        if (schedule.getId() != null) {
-            Entity dbSchedule = scheduleDD.get(schedule.getId());
-            if (dbSchedule.getBooleanField(ScheduleFields.INCLUDE_TPZ) != schedule.getBooleanField(ScheduleFields.INCLUDE_TPZ)) {
-                schedule.setField(ScheduleFields.INCLUDE_TPZ_CHANGED, true);
-            }
-        }
         setScheduleNumber(schedule);
     }
 

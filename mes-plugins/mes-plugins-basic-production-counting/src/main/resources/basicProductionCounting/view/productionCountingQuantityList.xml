@@ -1,4 +1,4 @@
-<view defaultAuthorizationRole="ROLE_PRODUCTION_COUNTING_QUANTITY" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schema.qcadoo.org/view"
+<view defaultAuthorizationRole="ROLE_BASE_FUNCTIONALITY" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schema.qcadoo.org/view"
       xsi:schemaLocation="http://schema.qcadoo.org/view http://schema.qcadoo.org/view.xsd"
       name="productionCountingQuantityList" modelName="productionCountingQuantityListDto" menuAccessible="true">
 
@@ -29,8 +29,6 @@
             <option type="column" name="role" fields="role" width="40"/>
             <option type="column" name="typeOfMaterial" fields="typeOfMaterial"
                     width="40"/>
-            <option type="column" name="warehouseNumber" fields="warehouseNumber"
-                    width="40"/>
             <option type="column" name="plannedQuantity" fields="plannedQuantity" width="30"/>
             <option type="column" name="usedQuantity" fields="usedQuantity" width="30"/>
             <option type="column" name="producedQuantity" fields="producedQuantity" width="30"/>
@@ -43,9 +41,9 @@
             <option type="columnsToSummary" value="plannedQuantity,usedQuantity,producedQuantity"/>
 
             <option type="searchable" value="orderNumber,operationalTaskNumber,startDate,productNumber,productName,replacementTo,
-                    nodeNumber,operationNumber,operationName,role,typeOfMaterial,warehouseNumber,plannedQuantity,usedQuantity,producedQuantity,productUnit" />
+                    nodeNumber,operationNumber,operationName,role,typeOfMaterial,plannedQuantity,usedQuantity,producedQuantity,productUnit" />
             <option type="orderable" value="orderNumber,operationalTaskNumber,startDate,productNumber,productName,replacementTo,
-                    nodeNumber,operationNumber,operationName,role,typeOfMaterial,warehouseNumber,plannedQuantity,usedQuantity,producedQuantity,productUnit" />
+                    nodeNumber,operationNumber,operationName,role,typeOfMaterial,plannedQuantity,usedQuantity,producedQuantity,productUnit" />
 
             <option type="fullscreen" value="true" />
             <option type="multiselect" value="true" />

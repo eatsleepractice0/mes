@@ -14,6 +14,8 @@ import java.util.Objects;
 @Service
 public class DeliveryByPalletTypeReportListeners {
 
+    
+
     private static final String L_FROM_DATE = "fromDate";
 
     private static final String L_TO_DATE = "toDate";

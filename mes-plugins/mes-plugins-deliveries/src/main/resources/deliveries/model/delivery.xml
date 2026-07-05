@@ -51,7 +51,8 @@
                    plugin="materialFlow"/>
         <belongsTo name="relatedDelivery" model="delivery"/>
         <belongsTo name="currency" model="currency" plugin="basic"/>
-        <hasMany name="relatedDeliveries" joinField="relatedDelivery" model="delivery"/>
+        <hasMany name="relatedDeliveries" joinField="relatedDelivery" model="delivery"
+                 cascade="nullify"/>
 
         <string name="externalNumber" unique="true"/>
         <boolean name="externalSynchronized" default="true"/>
@@ -61,7 +62,7 @@
         <decimal name="deliveredProductsCumulatedTotalPrice" persistent="false"/>
 
         <enum name="state"
-              values="01draft,02prepared,03duringCorrection,04declined,05approved,06received,07accepted"
+              values="01draft,02prepared,03duringCorrection,04declined,05approved,06received"
               default="01draft" required="true"/>
         <hasMany name="stateChanges" joinField="delivery" model="deliveryStateChange"
                  cascade="delete"/>
@@ -70,13 +71,13 @@
                  cascade="delete" copyable="true"/>
 
         <hasMany name="orderedProductDtos" joinField="delivery" model="orderedProductDto"
-                 persistent="false"/>
+                 cascade="nullify" copyable="false" persistent="false"/>
 
         <hasMany name="deliveredProducts" joinField="delivery" model="deliveredProduct"
                  cascade="delete"/>
 
         <hasMany name="deliveredProductDtos" joinField="delivery" model="deliveredProductDto"
-                 persistent="false"/>
+                 cascade="nullify" copyable="false" persistent="false"/>
 
         <hasMany name="deliveredProductMultis" joinField="delivery" model="deliveredProductMulti"
                  cascade="delete"/>
@@ -90,15 +91,6 @@
 
         <boolean name="wms" copyable="false" default="false"/>
         <enum name="stateInWMS" values="01waiting,02inProgress,03delayed,04realized" copyable="false"/>
-
-        <datetime name="dateOfSendingEmail" copyable="false"/>
-        <boolean name="releasedForPayment" default="false" copyable="false"/>
-        <string name="paymentID" copyable="false">
-            <validatesLength max="255"/>
-        </string>
-        <date name="dateOfReleasedForPayment" copyable="false"/>
-        <boolean name="paid" default="false" copyable="false"/>
-        <date name="paymentDate" copyable="false"/>
     </fields>
 
     <hooks>

@@ -75,6 +75,9 @@ public final class OrderFields {
 
     public static final String TECHNOLOGY = "technology";
 
+    //TODO remove
+   // public static final String TECHNOLOGY_PROTOTYPE = "technologyPrototype";
+
     public static final String PRODUCTION_LINE = "productionLine";
 
     public static final String PLANNED_QUANTITY = "plannedQuantity";
@@ -165,5 +168,4 @@ public final class OrderFields {
 
     public static final String PRIORITY = "priority";
 
-    public static final String VENDOR_INFO = "vendorInfo";
 }

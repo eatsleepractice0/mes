@@ -193,7 +193,7 @@ public class OrderMaterialAvailability {
         for (Map.Entry<Entity, Set<Entity>> entry : groupedMaterialAvailabilities.entrySet()) {
             if (entry.getKey() != null) {
                 Map<Long, BigDecimal> availableQuantities = materialFlowResourcesService.getQuantitiesForProductsAndLocation(
-                        Lists.newArrayList(entry.getValue()), entry.getKey(), true);
+                        Lists.newArrayList(entry.getValue()), entry.getKey());
 
                 availableComponents.put(entry.getKey().getId(), availableQuantities);
             }
@@ -318,8 +318,7 @@ public class OrderMaterialAvailability {
 
         materialAvailability.setField(MaterialAvailabilityFields.BATCHES, batches);
         materialAvailability.setField(MaterialAvailabilityFields.BATCHES_ID, batchesId);
-        materialAvailability.setField(MaterialAvailabilityFields.BATCHES_QUANTITY,
-                materialFlowResourcesService.getBatchesQuantity(batchesList, product, location, true));
+        materialAvailability.setField(MaterialAvailabilityFields.BATCHES_QUANTITY, materialFlowResourcesService.getBatchesQuantity(batchesList, product, location));
 
         return materialAvailability;
     }
@@ -392,7 +391,7 @@ public class OrderMaterialAvailability {
         for (Map.Entry<Entity, Set<Entity>> entry : groupedMaterialAvailabilities.entrySet()) {
             if (Objects.nonNull(entry.getKey())) {
                 Map<Long, BigDecimal> availableQuantities = materialFlowResourcesService.getQuantitiesForProductsAndLocation(
-                        Lists.newArrayList(entry.getValue()), entry.getKey(), true);
+                        Lists.newArrayList(entry.getValue()), entry.getKey());
 
                 availability.put(entry.getKey().getId(), availableQuantities);
             }

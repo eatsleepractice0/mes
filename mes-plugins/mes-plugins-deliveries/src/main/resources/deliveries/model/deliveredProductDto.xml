@@ -45,7 +45,7 @@
         <decimal name="totalPrice"/>
         <string name="storageLocationNumber"/>
         <string name="palletNumber"/>
-        <string name="typeOfLoadUnit"/>
+        <string name="palletType"/>
         <string name="batchNumber"/>
         <string name="offerNumber"/>
         <string name="productCatalogNumber"/>
@@ -53,8 +53,6 @@
         <boolean name="isWaste"/>
         <boolean name="damaged"/>
         <date name="expirationDate"/>
-        <date name="pickingDate"/>
-        <string name="pickingWorker"/>
     </fields>
 
     <masterModel plugin="deliveries" model="deliveredProduct"/>

@@ -46,7 +46,7 @@
         </decimal>
 
         <belongsTo name="palletNumber" model="palletNumber" plugin="basic"/>
-        <belongsTo name="typeOfLoadUnit" plugin="basic" model="typeOfLoadUnit" />
+        <dictionary name="palletType" dictionary="typeOfPallet"/>
         <belongsTo name="storageLocation" model="storageLocation" plugin="materialFlowResources"/>
         <string name="batchNumber"/>
         <belongsTo name="batch" model="batch" plugin="advancedGenealogy"/>
@@ -74,12 +74,12 @@
         <date name="expirationDate"/>
 
         <boolean name="addBatch" default="false" persistent="false"/>
-        <datetime name="pickingDate" copyable="false"/>
-        <belongsTo name="pickingWorker" model="user" plugin="qcadooSecurity" copyable="false"/>
 
     </fields>
 
     <hooks>
+        <onCreate class="com.qcadoo.mes.deliveries.hooks.DeliveredProductHooks"
+                  method="onCreate"/>
         <onSave class="com.qcadoo.mes.deliveries.hooks.DeliveredProductHooks"
                 method="onSave"/>
         <onDelete class="com.qcadoo.mes.deliveries.hooks.DeliveredProductHooks"

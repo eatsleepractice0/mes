@@ -47,7 +47,7 @@
         <string name="productCatalogNumber"/>
         <string name="actualVersion"/>
         <datetime name="deliveryDate"/>
-        <enum name="deliveryState" values="01draft,02prepared,03duringCorrection,04declined,05approved,06received,07accepted"/>
+        <enum name="deliveryState" values="01draft,02prepared,03duringCorrection,04declined,05approved,06received"/>
         <string name="deliveryNumber"/>
         <string name="deliveryName"/>
         <string name="deliveryCurrency"/>
@@ -56,7 +56,6 @@
         <boolean name="deliveryActive"/>
         <integer name="location_id"/>
         <string name="batchNumber"/>
-        <string name="deliveryDescription"/>
     </fields>
 
     <masterModel plugin="deliveries" model="orderedProduct"/>

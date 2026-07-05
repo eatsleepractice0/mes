@@ -78,6 +78,7 @@ public class OrdersPlanningListListenersMR {
 
         entityFieldsMap.put(MaterialRequirementFields.NUMBER, numberGeneratorService.generateNumber(MaterialRequirementsConstants.PLUGIN_IDENTIFIER,
                 MaterialRequirementsConstants.MODEL_MATERIAL_REQUIREMENT));
+        entityFieldsMap.put(MaterialRequirementFields.MRP_ALGORITHM, materialRequirementService.getDefaultMrpAlgorithm().getStringValue());
 
         OrderReportService.OrderValidator orderValidator = order -> {
             if (Objects.isNull(order.getField(OrderFields.TECHNOLOGY))) {

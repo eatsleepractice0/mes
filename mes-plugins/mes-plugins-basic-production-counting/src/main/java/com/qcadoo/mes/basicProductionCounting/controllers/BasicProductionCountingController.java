@@ -34,12 +34,11 @@ import org.springframework.web.servlet.ModelAndView;
 public class BasicProductionCountingController {
 
     @RequestMapping(value = BasicProductionCountingConstants.PLUGIN_IDENTIFIER + "/manifestoReport.pdf", method = RequestMethod.GET)
-    public final ModelAndView manifestoReportPdf(@RequestParam("id") final String id, @RequestParam("fromOrder") final String fromOrder) {
+    public final ModelAndView manifestoReportPdf(@RequestParam("id") final String id) {
         ModelAndView mav = new ModelAndView();
 
         mav.setViewName("manifestoReportPdf");
         mav.addObject("id", id);
-        mav.addObject("fromOrder", fromOrder);
 
         return mav;
     }

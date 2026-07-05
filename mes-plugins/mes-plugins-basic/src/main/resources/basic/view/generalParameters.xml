@@ -84,13 +84,16 @@
                                    reference="currency" hasDescription="true">
                             <option type="column" name="currency" fields="currency"
                                     link="true"/>
-                            <option type="column" name="exchangeRate" fields="exchangeRate"/>
+
+                            <option type="required" value="true"/>
 
                             <option type="searchable" value="currency,alphabeticCode"/>
                             <option type="orderable" value="currency,alphabeticCode"/>
 
                             <option type="expression" value="#alphabeticCode + ' - ' + #currency"/>
                             <option type="fieldCode" value="alphabeticCode"/>
+                            <option type="column" name="exchangeRate" fields="exchangeRate"/>
+
                         </component>
                     </layoutElement>
                     <layoutElement column="1" row="5">
@@ -149,37 +152,6 @@
                     <component type="checkbox" name="exportToCsvOnlyVisibleColumns"
                                reference="exportToCsvOnlyVisibleColumns" field="#{form}.exportToCsvOnlyVisibleColumns">
                         <option type="labelWidth" value="80"/>
-                    </component>
-                </layoutElement>
-            </component>
-        </windowTab>
-        <windowTab name="emailTab" reference="emailTab">
-            <component type="gridLayout" name="emailGridLayout"
-                       columns="3" rows="5">
-                <layoutElement column="1" row="1">
-                    <component type="input" name="emailHost" field="#{form}.emailHost"
-                               reference="emailHost">
-                    </component>
-                </layoutElement>
-                <layoutElement column="1" row="2">
-                    <component type="input" name="emailPort" field="#{form}.emailPort"
-                               reference="emailPort">
-                        <option type="alignment" value="right"/>
-                    </component>
-                </layoutElement>
-                <layoutElement column="1" row="3">
-                    <component type="input" name="emailUsername" field="#{form}.emailUsername"
-                               reference="emailUsername" hasDescription="true">
-                    </component>
-                </layoutElement>
-                <layoutElement column="1" row="4">
-                    <component type="input" name="emailPassword" field="#{form}.emailPassword"
-                               reference="emailPassword">
-                    </component>
-                </layoutElement>
-                <layoutElement column="1" row="5">
-                    <component type="input" name="emailForConfirmation" field="#{form}.emailForConfirmation"
-                               reference="emailForConfirmation" hasDescription="true">
                     </component>
                 </layoutElement>
             </component>

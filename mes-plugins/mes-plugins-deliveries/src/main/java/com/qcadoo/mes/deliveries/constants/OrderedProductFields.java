@@ -61,4 +61,6 @@ public final class OrderedProductFields {
 
     public static final String ADD_BATCH = "addBatch";
 
+    public static final String PICKING_DATE = "pickingDate";
+
 }

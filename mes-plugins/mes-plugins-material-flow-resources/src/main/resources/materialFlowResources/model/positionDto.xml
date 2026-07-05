@@ -47,8 +47,8 @@
         <decimal name="sellingPrice"/>
         <decimal name="value"/>
         <datetime name="documentDate"/>
-        <date name="expirationDate"/>
-        <date name="productionDate"/>
+        <datetime name="expirationDate"/>
+        <datetime name="productionDate"/>
         <enum name="documentType" values="01receipt,02internalInbound,03internalOutbound,04release,05transfer"/>
         <enum name="state" values="01draft,02accepted" default="01draft"/>
         <string name="documentNumber"/>
@@ -58,19 +58,14 @@
         <string name="batch"/>
         <string name="storageLocation"/>
         <boolean name="waste"/>
-        <string name="typeOfLoadUnit"/>
+        <string name="palletType"/>
         <string name="palletNumber"/>
         <integer name="documentId"/>
         <integer name="orderId"/>
         <integer name="subOrderId"/>
         <string name="resourceNumber"/>
-        <string name="transferResourceNumber"/>
         <string name="staff"/>
         <string name="invoiceNumber"/>
-        <date name="pickingDate"/>
-        <string name="pickingWorker"/>
-        <string name="documentDescription"/>
-        <string name="stocktakingNumber"/>
     </fields>
 
     <masterModel plugin="materialFlowResources" model="position"/>

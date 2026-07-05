@@ -1,12 +1,11 @@
 package com.qcadoo.mes.materialFlowResources.palletBalance;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.qcadoo.mes.basic.constants.BasicConstants;
-import com.qcadoo.mes.basic.constants.TypeOfLoadUnitFields;
-import com.qcadoo.model.api.DataDefinition;
-import com.qcadoo.model.api.DataDefinitionService;
-import com.qcadoo.model.api.search.SearchRestrictions;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -15,12 +14,10 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.qcadoo.model.api.DataDefinitionService;
+import com.qcadoo.model.api.DictionaryService;
 
 @Service
 public class PalletBalanceReportHelper {
@@ -29,19 +26,21 @@ public class PalletBalanceReportHelper {
     private DataDefinitionService dataDefinitionService;
 
     @Autowired
+    private DictionaryService dictionaryService;
+
+    @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
 
-    public List<String> getTypesOfLoadUnit() {
-        return getTypeOfLoadUnitDD().find().add(SearchRestrictions.eq("active", true)).list().getEntities().stream().map(e -> e.getStringField(TypeOfLoadUnitFields.NAME)).collect(Collectors.toList());
+    public List<String> getTypesOfPallet() {
+        return dictionaryService.getActiveKeys("typeOfPallet");
     }
 
     public Map<Date, List<PalletBalanceRowDto>> getCurrentState(Date dateTo) {
         StringBuilder query = new StringBuilder();
-        query.append("select typeofloadunit.name as typeOfLoadUnit, count(distinct p.number) as palletsCount, current_date AS day ");
+        query.append("select r.typeofpallet as typeOfPallet, count(distinct p.number) as palletsCount, current_date AS day ");
         query.append("  from materialflowresources_resource r ");
         query.append("  join basic_palletnumber p on r.palletnumber_id = p.id ");
-        query.append(" left join basic_typeofloadunit typeofloadunit on typeofloadunit.id = r.typeofloadunit_id ");
-        query.append("group by typeofloadunit.name");
+        query.append("group by r.typeofpallet");
 
         List<PalletBalanceRowDto> results = jdbcTemplate.query(query.toString(), new BeanPropertyRowMapper<>(
                 PalletBalanceRowDto.class));
@@ -51,10 +50,9 @@ public class PalletBalanceReportHelper {
         return map;
     }
 
-    public void fillFinalAndInitialState(List<String> typesOfLoadUnit, Map<Date, List<PalletBalanceRowDto>> finalState,
-                                         Map<Date, List<PalletBalanceRowDto>> initialState,
-                                         Map<Date, List<PalletBalanceRowDto>> inbounds,
-                                         Map<Date, List<PalletBalanceRowDto>> outbounds, Date dateFrom, Date dateTo) {
+    public void fillFinalAndInitialState(List<String> typesOfPallet, Map<Date, List<PalletBalanceRowDto>> finalState,
+            Map<Date, List<PalletBalanceRowDto>> initialState, Map<Date, List<PalletBalanceRowDto>> inbounds,
+            Map<Date, List<PalletBalanceRowDto>> outbounds, Date dateFrom, Date dateTo) {
         DateTime currentDate = new DateTime(dateTo);
 
         while (currentDate.toDate().compareTo(dateFrom) >= 0) {
@@ -67,28 +65,26 @@ public class PalletBalanceReportHelper {
             }
             initialState.put(
                     current,
-                    calculateInitialState(typesOfLoadUnit, current, finalState.get(current), inbounds.get(current),
+                    calculateInitialState(typesOfPallet, current, finalState.get(current), inbounds.get(current),
                             outbounds.get(current)));
 
             currentDate = currentDate.minusDays(1);
         }
     }
 
-    private List<PalletBalanceRowDto> calculateInitialState(List<String> typesOfLoadUnit, Date date,
-                                                            List<PalletBalanceRowDto> finalStateRow,
-                                                            List<PalletBalanceRowDto> inboundsRow,
-                                                            List<PalletBalanceRowDto> outboundsRow) {
+    private List<PalletBalanceRowDto> calculateInitialState(List<String> typesOfPallet, Date date,
+            List<PalletBalanceRowDto> finalStateRow, List<PalletBalanceRowDto> inboundsRow, List<PalletBalanceRowDto> outboundsRow) {
 
         List<PalletBalanceRowDto> initialStateRow = Lists.newArrayList();
-        typesOfLoadUnit.forEach(type -> {
-            PalletBalanceRowDto finalPalletState = finalStateRow.stream().filter(dto -> type.equals(dto.getTypeOfLoadUnit()))
+        typesOfPallet.forEach(type -> {
+            PalletBalanceRowDto finalPalletState = finalStateRow.stream().filter(dto -> type.equals(dto.getTypeOfPallet()))
                     .findAny().orElse(new PalletBalanceRowDto(type, date, 0));
             PalletBalanceRowDto initialPalletState = new PalletBalanceRowDto();
-            String typeOfLoadUnit = finalPalletState.getTypeOfLoadUnit();
+            String typeOfPallet = finalPalletState.getTypeOfPallet();
             initialPalletState.setDay(finalPalletState.getDay());
-            initialPalletState.setTypeOfLoadUnit(typeOfLoadUnit);
-            int inboundForPallet = getPalletsCountForType(inboundsRow, typeOfLoadUnit);
-            int outboundForPallet = getPalletsCountForType(outboundsRow, typeOfLoadUnit);
+            initialPalletState.setTypeOfPallet(typeOfPallet);
+            int inboundForPallet = getPalletsCountForType(inboundsRow, typeOfPallet);
+            int outboundForPallet = getPalletsCountForType(outboundsRow, typeOfPallet);
             int finalForPallet = finalPalletState.getPalletsCount();
             initialPalletState.setPalletsCount(finalForPallet - inboundForPallet + outboundForPallet);
             initialStateRow.add(initialPalletState);
@@ -100,7 +96,7 @@ public class PalletBalanceReportHelper {
         if (source == null || source.isEmpty()) {
             return 0;
         }
-        PalletBalanceRowDto stateForDay = source.stream().filter(dto -> type.equals(dto.getTypeOfLoadUnit())).findAny()
+        PalletBalanceRowDto stateForDay = source.stream().filter(dto -> type.equals(dto.getTypeOfPallet())).findAny()
                 .orElse(new PalletBalanceRowDto());
         return stateForDay.getPalletsCount();
     }
@@ -136,16 +132,14 @@ public class PalletBalanceReportHelper {
 
     public Map<Date, List<PalletBalanceRowDto>> getInbounds(final Date dateFrom) {
         StringBuilder query = new StringBuilder();
-        query.append("select typeofloadunit.name as typeOfLoadUnit, date_trunc('day', d.time) as day, count(distinct pn.number) as palletsCount ");
+        query.append("select p.typeofpallet as typeOfPallet, date_trunc('day', d.time) as day, count(distinct pn.number) as palletsCount ");
         query.append("  from materialflowresources_position p ");
         query.append("  join basic_palletnumber pn on p.palletnumber_id = pn.id ");
         query.append("  join materialflowresources_document d on p.document_id = d.id ");
-        query.append("LEFT JOIN basic_typeofloadunit typeofloadunit ");
-        query.append("ON typeofloadunit.id = p.typeofloadunit_id ");
         query.append("      where d.type in ('01receipt','02internalInbound') ");
         query.append("      and d.state ='02accepted' ");
         query.append("      and date_trunc('day', d.time) >= :dateFrom ");
-        query.append("group by typeofloadunit.name, date_trunc('day',d.time)");
+        query.append("group by p.typeofpallet, date_trunc('day',d.time)");
 
         Map<String, Object> params = Maps.newHashMap();
         params.put("dateFrom", dateFrom);
@@ -158,15 +152,13 @@ public class PalletBalanceReportHelper {
 
     public Map<Date, List<PalletBalanceRowDto>> getOutbounds(final Date dateFrom) {
         StringBuilder query = new StringBuilder();
-        query.append("select date_trunc('day',pn.issuedatetime) as day, typeofloadunit.name as typeOfLoadUnit, count(distinct pn.number) as palletsCount ");
+        query.append("select date_trunc('day',pn.issuedatetime) as day, p.typeofpallet  as typeOfPallet, count(distinct pn.number) as palletsCount ");
         query.append("  from basic_palletnumber pn ");
         query.append("  join materialflowresources_position p on p.palletnumber_id = pn.id ");
         query.append("  join materialflowresources_document d on p.document_id = d.id ");
-        query.append("LEFT JOIN basic_typeofloadunit typeofloadunit ");
-        query.append("ON typeofloadunit.id = p.typeofloadunit_id ");
         query.append("      where date_trunc('day',pn.issuedatetime) >= :dateFrom ");
         query.append("      and d.type in ('03internalOutbound','04release')");
-        query.append("group by date_trunc('day',pn.issuedatetime), typeofloadunit.name");
+        query.append("group by date_trunc('day',pn.issuedatetime), p.typeofpallet");
 
         Map<String, Object> params = Maps.newHashMap();
         params.put("dateFrom", dateFrom);
@@ -188,11 +180,6 @@ public class PalletBalanceReportHelper {
             }
         }
         return map;
-    }
-
-
-    private DataDefinition getTypeOfLoadUnitDD() {
-        return dataDefinitionService.get(BasicConstants.PLUGIN_IDENTIFIER, BasicConstants.MODEL_TYPE_OF_LOAD_UNIT);
     }
 
 }

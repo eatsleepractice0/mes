@@ -23,10 +23,13 @@
  */
 package com.qcadoo.mes.basic.hooks;
 
+import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.qcadoo.mes.basic.constants.ParameterFields;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.security.api.SecurityService;
-import com.qcadoo.view.api.ComponentState;
 import com.qcadoo.view.api.ViewDefinitionState;
 import com.qcadoo.view.api.components.FieldComponent;
 import com.qcadoo.view.api.components.FormComponent;
@@ -36,9 +39,6 @@ import com.qcadoo.view.api.ribbon.Ribbon;
 import com.qcadoo.view.api.ribbon.RibbonActionItem;
 import com.qcadoo.view.api.ribbon.RibbonGroup;
 import com.qcadoo.view.constants.QcadooViewConstants;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class ParametersHooks {
@@ -58,12 +58,6 @@ public class ParametersHooks {
         boolean isCompany = (companyLookup.getEntity() != null);
 
         changeButtonsState(view, isSaved && isCompany);
-        toggleEmailTab(view);
-    }
-
-    private void toggleEmailTab(ViewDefinitionState view) {
-        ComponentState emailTab = view.getComponentByReference("emailTab");
-        emailTab.setVisible(securityService.hasCurrentUserRole("ROLE_EMAIL_PARAMETERS"));
     }
 
     private void changeButtonsState(final ViewDefinitionState view, final boolean enabled) {

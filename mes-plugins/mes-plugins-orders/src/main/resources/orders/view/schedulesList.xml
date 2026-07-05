@@ -1,4 +1,4 @@
-<view defaultAuthorizationRole="ROLE_SCHEDULES" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<view defaultAuthorizationRole="ROLE_PLANNING" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://schema.qcadoo.org/view"
       xsi:schemaLocation="http://schema.qcadoo.org/view http://schema.qcadoo.org/view.xsd"
       name="schedulesList" modelName="schedule" menuAccessible="true">
@@ -39,6 +39,8 @@
             <option type="column" name="name" fields="name" link="true" width="50"/>
             <option type="column" name="state" fields="state" link="true" width="40"/>
             <option type="column" name="startTime" fields="startTime" width="50"/>
+            <option type="column" name="sortOrder" fields="sortOrder" width="60"/>
+            <option type="column" name="workstationAssignCriterion" fields="workstationAssignCriterion" width="60"/>
             <option type="column" name="workerAssignCriterion" fields="workerAssignCriterion" width="60"/>
             <option type="column" name="approveTime" fields="approveTime" width="50"/>
 
@@ -48,9 +50,9 @@
             <option type="order" column="number" direction="desc"/>
 
             <option type="searchable"
-                    value="name,number,state,startTime,workerAssignCriterion,approveTime"/>
+                    value="name,number,state,startTime,sortOrder,workstationAssignCriterion,workerAssignCriterion,approveTime"/>
             <option type="orderable"
-                    value="name,number,state,startTime,workerAssignCriterion,approveTime"/>
+                    value="name,number,state,startTime,sortOrder,workstationAssignCriterion,workerAssignCriterion,approveTime"/>
 
             <option type="fullscreen" value="true"/>
             <option type="multiselect" value="true"/>

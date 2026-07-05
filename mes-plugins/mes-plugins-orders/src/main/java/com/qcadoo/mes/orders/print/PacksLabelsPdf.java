@@ -100,7 +100,7 @@ public class PacksLabelsPdf extends ReportPdfView {
     }
 
     private void addLabel(PdfWriter writer, Entity pack, final PdfPTable table, final int orderNo, final boolean showRightBorder,
-            final boolean showBottomBorder, final Locale locale) {
+            final boolean showBottomBorder, final Locale locale) throws DocumentException {
         PdfPCell cell = new PdfPCell();
         int border;
         if (showRightBorder) {
@@ -120,7 +120,8 @@ public class PacksLabelsPdf extends ReportPdfView {
         table.addCell(cell);
     }
 
-    private void addLabelFields(PdfWriter writer, Entity pack, final PdfPTable mainTable, final int orderNo, final Locale locale) {
+    private void addLabelFields(PdfWriter writer, Entity pack, final PdfPTable mainTable, final int orderNo, final Locale locale)
+            throws DocumentException {
         PdfPTable orderAndQrTable;
         PdfContentByte cb = writer.getDirectContent();
 

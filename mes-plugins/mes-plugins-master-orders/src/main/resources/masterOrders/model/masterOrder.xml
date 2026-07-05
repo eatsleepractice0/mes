@@ -41,7 +41,6 @@
             <validatesLength max="2048"/>
         </string>
         <string name="externalNumber" unique="true"/>
-        <string name="baseOrderId"/>
         <boolean name="externalSynchronized" default="true"/>
         <string name="externalProductionOrderID" unique="true"/>
         <boolean name="synchronize" default="false" copyable="false"/>
@@ -57,8 +56,6 @@
         <datetime name="dateOfReceipt"/>
 
         <boolean name="addMasterPrefixToNumber"/>
-
-        <string name="deliveryMethod"/>
 
         <dictionary name="masterOrderState" dictionary="masterOrderState"/>
 
@@ -100,18 +97,12 @@
         <belongsTo name="technology" plugin="technologies" model="technology" persistent="false"/>
         <text name="comments" persistent="false"/>
         <dictionary name="masterOrderPositionStatus" dictionary="masterOrderPositionStatus" persistent="false"/>
-        <datetime name="deliveryDate" persistent="false"/>
-        <decimal name="price" persistent="false">
-            <validatesRange from="0" exclusively="true"/>
-            <validatesUnscaledValue max="9"/>
-            <validatesScale max="5"/>
-        </decimal>
 
         <hasMany name="productsBySizeHelpers" joinField="masterOrder" model="productsBySizeHelper"
-                 plugin="masterOrders"/>
+                 plugin="masterOrders" cascade="nullify"/>
 
         <hasMany name="productsByAttributeHelpers" joinField="masterOrder" model="productsByAttributeHelper"
-                 plugin="masterOrders"/>
+                 plugin="masterOrders" cascade="nullify"/>
 
         <belongsTo name="salesPlan" model="salesPlan"/>
 
@@ -121,8 +112,6 @@
 
         <manyToMany name="masterOrdersMaterialRequirements" model="masterOrdersMaterialRequirement"
                     plugin="masterOrders" joinField="masterOrders" />
-
-        <hasMany name="documents" model="document" plugin="materialFlowResources" joinField="masterOrder"/>
     </fields>
 
     <hooks>

@@ -25,9 +25,7 @@ package com.qcadoo.mes.technologies.listeners;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.qcadoo.mes.basic.constants.BasicConstants;
 import com.qcadoo.mes.basic.constants.ProductFields;
-import com.qcadoo.mes.basic.constants.QualityCardFields;
 import com.qcadoo.mes.technologies.TechnologyService;
 import com.qcadoo.mes.technologies.constants.*;
 import com.qcadoo.mes.technologies.hooks.TechnologyDetailsHooks;
@@ -95,8 +93,7 @@ public class TechnologyDetailsListeners {
 
     }
 
-    public void removeOnlySelectedOperation(final ViewDefinitionState view, final ComponentState state,
-                                            final String[] args) {
+    public void removeOnlySelectedOperation(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         final TreeComponent technologyTree = (TreeComponent) view.getComponentByReference(L_TECHNOLOGY_TREE_REFERENCE);
         final Long selectedEntityId = technologyTree.getSelectedEntityId();
 
@@ -114,8 +111,7 @@ public class TechnologyDetailsListeners {
         }
     }
 
-    public void generateProductStructure(final ViewDefinitionState view, final ComponentState state,
-                                         final String[] args) {
+    public void generateProductStructure(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         FormComponent technologyForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
         FormComponent productStructureForm = (FormComponent) view.getComponentByReference(L_PRODUCT_STRUCTURE_FORM);
 
@@ -334,12 +330,11 @@ public class TechnologyDetailsListeners {
         view.redirectTo(url, false, true, parameters);
     }
 
-    private String applyInOperator(final String value) {
+    private String applyInOperator(final String value){
         return "[" + value + "]";
     }
 
-    public final void showInProductCart(final ViewDefinitionState view, final ComponentState state,
-                                        final String[] args) {
+    public final void showInProductCart(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         GridComponent inProductsGrid = (GridComponent) view.getComponentByReference(L_IN_PRODUCTS);
 
         if (inProductsGrid.getSelectedEntitiesIds().size() == 0) {
@@ -360,8 +355,7 @@ public class TechnologyDetailsListeners {
         }
     }
 
-    public final void setProductDataRibbonState(final ViewDefinitionState view, final ComponentState state,
-                                                final String[] args) {
+    public final void setProductDataRibbonState(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         technologyDetailsHooks.setProductDataRibbonState(view);
     }
 
@@ -381,7 +375,7 @@ public class TechnologyDetailsListeners {
 
     private DataDefinition getQualityCardDD() {
         return dataDefinitionService
-                .get(BasicConstants.PLUGIN_IDENTIFIER, BasicConstants.MODEL_QUALITY_CARD);
+                .get(TechnologiesConstants.PLUGIN_IDENTIFIER, TechnologiesConstants.MODEL_QUALITY_CARD);
     }
 
 }

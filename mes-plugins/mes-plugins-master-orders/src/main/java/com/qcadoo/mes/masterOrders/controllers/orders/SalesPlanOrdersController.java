@@ -13,6 +13,11 @@ import com.qcadoo.mes.masterOrders.constants.SalesPlanOrdersGroupHelperFields;
 import com.qcadoo.mes.orders.constants.OrderFields;
 import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.MediaType;
@@ -21,10 +26,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
 
 @Controller
 public class SalesPlanOrdersController {
@@ -82,7 +83,7 @@ public class SalesPlanOrdersController {
     }
 
     private void generateOrders(GenerationOrderResult result, Entity salesPlan,
-                                List<OrderSalePlanPosition> positionsWithQuantities, List<Entity> positions) {
+            List<OrderSalePlanPosition> positionsWithQuantities, List<Entity> positions) {
         Entity parameters = parameterService.getParameter();
         boolean automaticPps = parameters.getBooleanField(L_PPS_IS_AUTOMATIC);
 
@@ -94,6 +95,7 @@ public class SalesPlanOrdersController {
                     pos.getValue(), salesPlan, null, null);
             if (!order.isValid()) {
                 result.addProductOrderSimpleError(product.getStringField(ProductFields.NUMBER));
+
             } else {
                 if (Objects.isNull(order.getBelongsToField(OrderFields.TECHNOLOGY))) {
                     result.addOrderWithoutGeneratedSubOrders(new SubOrderErrorHolder(order.getStringField(OrderFields.NUMBER),
@@ -110,6 +112,7 @@ public class SalesPlanOrdersController {
 
                 ordersGenerationService.createPps(result, parameters, automaticPps, order);
                 result.addGeneratedOrderNumber(order.getStringField(OrderFields.NUMBER));
+
             }
         }
     }

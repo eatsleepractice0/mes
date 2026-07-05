@@ -36,6 +36,5 @@ public final class ParameterFieldsMF {
     public static final String DASHBOARD_COMPONENTS_LOCATION = "dashboardComponentsLocation";
 
     public static final String DASHBOARD_PRODUCTS_INPUT_LOCATION = "dashboardProductsInputLocation";
-    public static final String SHOW_PRODUCTION_TRACKING_STAFF = "showProductionTrackingStaff";
 
 }

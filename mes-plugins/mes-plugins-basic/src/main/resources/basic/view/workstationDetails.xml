@@ -218,9 +218,8 @@
                         </component>
                     </layoutElement>
                     <layoutElement column="2" row="8">
-                        <component type="checkbox" name="virtual" field="virtual"
-                                   reference="virtual" hasDescription="true">
-                        </component>
+                        <component type="checkbox" field="buffer" name="buffer" reference="buffer"
+                                   hasDescription="true"/>
                     </layoutElement>
                 </component>
 

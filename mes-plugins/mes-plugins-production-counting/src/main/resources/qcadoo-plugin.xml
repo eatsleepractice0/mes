@@ -418,12 +418,6 @@
                            joinField="location" cascade="delete"/>
         </model:model-field>
 
-        <model:model-field plugin="basic" model="typeOfLoadUnit">
-            <model:hasMany name="trackingOperationProductOutComponents" plugin="productionCounting" model="trackingOperationProductOutComponent" joinField="typeOfLoadUnit"/>
-        </model:model-field>
-
-        <model:model-enum-value plugin="basic" model="log" enum="logType" value="productionTrackingImport"/>
-
         <model:model-hook model="parameter" plugin="basic">
             <model:onCreate
                     class="com.qcadoo.mes.productionCounting.hooks.ParameterHooksPC"
@@ -443,11 +437,6 @@
 
         <model:model-hook model="productionCountingQuantity" plugin="basicProductionCounting">
             <model:onDelete class="com.qcadoo.mes.productionCounting.hooks.ProductionCountingQuantityHooksPC"
-                            method="onDelete"/>
-        </model:model-hook>
-
-        <model:model-hook model="storageLocation" plugin="materialFlowResources">
-            <model:onDelete class="com.qcadoo.mes.productionCounting.hooks.StorageLocationHooksPC"
                             method="onDelete"/>
         </model:model-hook>
 
@@ -540,7 +529,6 @@
                             url="/linesProducedQuantitiesChart.html" defaultAuthorizationRole="ROLE_ANALYSIS_VIEWER"/>
 
         <view:view resource="view/productionTrackingsList.xml"/>
-        <view:view resource="view/trackingsImport.xml"/>
         <view:view resource="view/productionTrackingDetails.xml"/>
         <view:view resource="view/productionBalancesList.xml"/>
         <view:view resource="view/productionBalanceDetails.xml"/>
@@ -586,7 +574,6 @@
         <view:view resource="view/productionBalanceAnalysis.xml"/>
         <view:view resource="view/linesProducedQuantitiesChart.xml"/>
         <view:view resource="view/lackDetails.xml"/>
-        <view:view resource="view/productionBalanceOrderDetails.xml"/>
 
         <view:view-tab resource="view/tabExtensions/orderDetails.xml"/>
         <view:view-tab resource="view/tabExtensions/technologyDetails.xml"/>

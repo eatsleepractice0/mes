@@ -111,7 +111,7 @@
                         </component>
                     </layoutElement>
                     <layoutElement column="2" row="1">
-                        <component type="gridLayout" name="rightGridLayout" columns="1" rows="3">
+                        <component type="gridLayout" name="rightGridLayout" columns="1" rows="2">
                             <layoutElement column="1" row="1">
                                 <component type="checkbox" name="updateTechnologiesOnPendingOrders"
                                            field="#{form}.updateTechnologiesOnPendingOrders"
@@ -120,13 +120,6 @@
                                 </component>
                             </layoutElement>
                             <layoutElement column="1" row="2">
-                                <component type="checkbox" name="checkDuplicateCyclesThroughoutProductStructure"
-                                           field="#{form}.checkDuplicateCyclesThroughoutProductStructure"
-                                           reference="checkDuplicateCyclesThroughoutProductStructure" hasDescription="true">
-                                    <option type="labelWidth" value="60"/>
-                                </component>
-                            </layoutElement>
-                            <layoutElement column="1" row="3">
                                 <component type="borderLayout" name="dimensionControlBorderLayout">
                                     <component type="gridLayout" name="dimensionControlGridLayout"
                                                columns="1" rows="2">
@@ -189,32 +182,6 @@
 
                 <option type="header" value="true"/>
                 <option type="expression" value=""/>
-            </component>
-        </windowTab>
-        <windowTab name="rangeTab" reference="rangeTab">
-            <component type="gridLayout" name="gridLayout"
-                       columns="3" rows="2" reference="gridLayout">
-                <layoutElement column="1" row="1">
-                    <component type="select" name="range" field="#{form}.range"
-                               reference="range" hasDescription="true">
-
-                        <listener event="onSelectedEntityChange"
-                                  class="com.qcadoo.view.api.listeners.RerenderListener"
-                                  method="onChangeRerender"/>
-                    </component>
-                </layoutElement>
-                <layoutElement column="1" row="2">
-                    <component type="lookup" name="division" field="#{form}.division"
-                               reference="division" hasDescription="true">
-                        <option type="column" name="name" fields="name" link="true"/>
-
-                        <option type="searchable" value="name,number"/>
-                        <option type="orderable" value="name,number"/>
-
-                        <option type="expression" value="#number + ' - ' + #name"/>
-                        <option type="fieldCode" value="number"/>
-                    </component>
-                </layoutElement>
             </component>
         </windowTab>
     </component>

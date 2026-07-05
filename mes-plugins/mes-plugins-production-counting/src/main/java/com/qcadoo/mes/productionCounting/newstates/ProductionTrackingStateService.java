@@ -55,7 +55,7 @@ public class ProductionTrackingStateService extends BasicStateService implements
                              StateChangeEntityDescriber describer) {
         switch (targetState) {
             case ProductionTrackingStateStringValues.ACCEPTED:
-                productionTrackingListenerService.validationOnAccept(entity, sourceState);
+                productionTrackingListenerService.validationOnAccept(entity);
                 break;
 
             case ProductionTrackingStateStringValues.DECLINED:

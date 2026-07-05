@@ -67,8 +67,8 @@ public class PalletBalanceDetailsListeners {
                         ComponentState.MessageType.FAILURE);
                 return;
             }
-            List<String> typesOfLoadUnit = palletBalanceReportHelper.getTypesOfLoadUnit();
-            if (typesOfLoadUnit.isEmpty()) {
+            List<String> typesOfPallet = palletBalanceReportHelper.getTypesOfPallet();
+            if (typesOfPallet.isEmpty()) {
                 state.addMessage("materialFlowResource.palletBalance.report.error.emptyTypesOfPallet",
                         ComponentState.MessageType.FAILURE);
                 return;
@@ -82,10 +82,12 @@ public class PalletBalanceDetailsListeners {
             try {
                 generateReport(report, state.getLocale());
 
-                state.performEvent(viewDefinitionState, "reset");
+                state.performEvent(viewDefinitionState, "reset", new String[0]);
 
                 state.addMessage("materialFlowResource.palletBalance.report.generatedMessage", ComponentState.MessageType.SUCCESS);
-            } catch (IOException | DocumentException e) {
+            } catch (IOException e) {
+                throw new IllegalStateException(e.getMessage(), e);
+            } catch (DocumentException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
         }

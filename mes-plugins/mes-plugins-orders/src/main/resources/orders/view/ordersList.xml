@@ -109,10 +109,14 @@
                 </smallButton>
             </group>
             <group name="split">
-                <smallButton name="splitOrdersParts" icon="genealogyIcon16.png"
+                <bigButton name="splitOrdersParts" icon="genealogyIcon24.png"
                            action="#{grid}.fireEvent(splitOrdersParts)"/>
-                <smallButton name="splitOrders" icon="genealogyIcon16.png"
+                <bigButton name="splitOrders" icon="genealogyIcon24.png"
                            action="#{grid}.fireEvent(splitOrders)"/>
+            </group>
+            <group name="actions" defaultAuthorizationRole="ROLE_SUPERADMIN">
+                <bigButton name="generateProductionCounting" icon="calendarIcon24.png"
+                           action="#{grid}.fireEvent(generateProductionCounting)"/>
             </group>
         </ribbon>
 
@@ -249,8 +253,6 @@
             <option type="column" name="additionalFinalProducts" fields="additionalFinalProducts" width="60"/>
             <option type="column" name="companyName" fields="companyName" width="50"/>
 			<option type="column" name="orderCategory" fields="orderCategory" width="40"/>
-            <option type="column" name="orderCode" fields="orderCode"/>
-			<option type="column" name="dateChange" fields="dateChange" width="30"/>
 
             <option type="correspondingView" value="orders/orderDetails"/>
             <option type="correspondingComponent" value="form"/>
@@ -258,9 +260,9 @@
             <option type="order" column="deadline" direction="desc"/>
 
             <option type="searchable"
-                    value="additionalFinalProducts,name,number,state,dateFrom,dateTo,deadline,technologyNumber,productNumber,productName,plannedQuantity,unit,companyName,plannedQuantityForAdditionalUnit,unitForAdditionalUnit,orderCategory,orderCode,dateChange"/>
+                    value="additionalFinalProducts,name,number,state,dateFrom,dateTo,deadline,technologyNumber,productNumber,productName,plannedQuantity,unit,companyName,plannedQuantityForAdditionalUnit,unitForAdditionalUnit,orderCategory"/>
             <option type="orderable"
-                    value="additionalFinalProducts,name,number,state,dateFrom,dateTo,deadline,technologyNumber,productNumber,productName,plannedQuantity,unit,companyName,plannedQuantityForAdditionalUnit,unitForAdditionalUnit,orderCategory,orderCode,dateChange"/>
+                    value="additionalFinalProducts,name,number,state,dateFrom,dateTo,deadline,technologyNumber,productNumber,productName,plannedQuantity,unit,companyName,plannedQuantityForAdditionalUnit,unitForAdditionalUnit,orderCategory"/>
 
             <option type="footerRow" value="true"/>
             <option type="columnsToSummary" value="plannedQuantity,plannedQuantityForAdditionalUnit"/>
@@ -269,6 +271,7 @@
             <option type="multiselect" value="true"/>
 
             <listener event="changeState" class="com.qcadoo.mes.orders.listeners.OrdersListListeners" method="changeState"/>
+            <listener event="generateProductionCounting" class="com.qcadoo.mes.orders.listeners.OrdersListListeners" method="generateProductionCounting"/>
             <listener event="splitOrdersParts"
                       class="com.qcadoo.mes.orders.listeners.OrdersPlanningListListeners"
                       method="splitOrdersParts"/>

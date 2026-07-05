@@ -2,11 +2,10 @@ package com.qcadoo.mes.materialFlowResources.service;
 
 import com.google.common.collect.Lists;
 import com.qcadoo.localization.api.TranslationService;
+import com.qcadoo.mes.basic.ParameterService;
 import com.qcadoo.mes.materialFlowResources.MaterialFlowResourcesService;
-import com.qcadoo.mes.materialFlowResources.constants.DocumentFields;
-import com.qcadoo.mes.materialFlowResources.constants.DocumentType;
-import com.qcadoo.mes.materialFlowResources.constants.PositionAttributeValueFields;
-import com.qcadoo.mes.materialFlowResources.constants.PositionFields;
+import com.qcadoo.mes.materialFlowResources.constants.*;
+import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.security.api.SecurityService;
 import com.qcadoo.security.api.UserService;
@@ -25,7 +24,13 @@ import java.util.Optional;
 public class ReceiptDocumentForReleaseHelper {
 
     @Autowired
+    private DataDefinitionService dataDefinitionService;
+
+    @Autowired
     private TranslationService translationService;
+
+    @Autowired
+    private ParameterService parameterService;
 
     @Autowired
     private UserService userService;
@@ -72,7 +77,13 @@ public class ReceiptDocumentForReleaseHelper {
 
             fillPositions(linkedDocumentLocation, document, documentBuilder);
 
-            Entity connectedDocument = documentBuilder.build();
+            Entity connectedDocument;
+
+            if (parameterService.getParameter().getStringField("documentsStatus").equals("01accepted")) {
+                connectedDocument = documentBuilder.setAccepted().build();
+            } else {
+                connectedDocument = documentBuilder.build();
+            }
 
             if (!connectedDocument.isValid()) {
                 document.addGlobalError("materialFlowResources.document.error.creationConnectedDocument");
@@ -92,6 +103,12 @@ public class ReceiptDocumentForReleaseHelper {
     }
 
     private void fillPositions(final Entity location, final Entity document, final DocumentBuilder documentBuilder) {
+        Entity documentPositionParameters = parameterService.getParameter()
+                .getBelongsToField(ParameterFieldsMFR.DOCUMENT_POSITION_PARAMETERS);
+
+        boolean transferPalletToReceivingWarehouse = documentPositionParameters
+                .getBooleanField(DocumentPositionParametersFields.TRANSFER_PALLET_TO_RECEIVING_WAREHOUSE);
+
         List<Entity> positions = document.getHasManyField(DocumentFields.POSITIONS);
 
         positions.forEach(position -> {
@@ -101,15 +118,18 @@ public class ReceiptDocumentForReleaseHelper {
             copiedPosition.setField(PositionFields.DOCUMENT, null);
             copiedPosition.setField(PositionFields.RESOURCE, null);
             copiedPosition.setField(PositionFields.RESOURCE_NUMBER, null);
-            copiedPosition.setField(PositionFields.TYPE_OF_LOAD_UNIT, null);
+            copiedPosition.setField(PositionFields.TYPE_OF_PALLET, null);
 
-            copiedPosition.setField(PositionFields.DELIVERY_NUMBER, position.getStringField(PositionFields.DELIVERY_NUMBER));
-            copiedPosition.setField(PositionFields.PALLET_NUMBER, null);
+            if (transferPalletToReceivingWarehouse) {
+                copiedPosition.setField(PositionFields.PALLET_NUMBER, position.getBelongsToField(PositionFields.PALLET_NUMBER));
+            } else {
+                copiedPosition.setField(PositionFields.PALLET_NUMBER, null);
+            }
 
             copiedPosition.setField(PositionFields.POSITION_ATTRIBUTE_VALUES, null);
 
             Optional<Entity> maybeStorageLocation = materialFlowResourcesService.findStorageLocationForProduct(location,
-                    position.getBelongsToField(PositionFields.PRODUCT).getId());
+                    position.getBelongsToField(PositionFields.PRODUCT));
 
             if (maybeStorageLocation.isPresent()) {
                 copiedPosition.setField(PositionFields.STORAGE_LOCATION, maybeStorageLocation.get());

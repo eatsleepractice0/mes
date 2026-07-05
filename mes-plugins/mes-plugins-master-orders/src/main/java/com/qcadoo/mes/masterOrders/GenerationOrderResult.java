@@ -5,9 +5,10 @@ import com.qcadoo.localization.api.TranslationService;
 import com.qcadoo.mes.basic.ParameterService;
 import com.qcadoo.view.api.ComponentState;
 import com.qcadoo.view.api.ViewDefinitionState;
-import org.springframework.context.i18n.LocaleContextHolder;
 
 import java.util.List;
+
+import org.springframework.context.i18n.LocaleContextHolder;
 
 public class GenerationOrderResult {
 
@@ -92,7 +93,7 @@ public class GenerationOrderResult {
             ordersWithoutGeneratedSubOrders.forEach(error -> {
                 view.addMessage("masterOrders.masterOrder.generationOrder.ordersWithoutGeneratedSubOrders",
                         ComponentState.MessageType.INFO, false, error.getNumber(),
-                        translationService.translate(error.getError(), LocaleContextHolder.getLocale(), error.getProductNumber()));
+                        translationService.translate(error.getError(), LocaleContextHolder.getLocale()));
             });
 
         }
@@ -159,7 +160,7 @@ public class GenerationOrderResult {
                 messages.add(translationService.translate(
                         "masterOrders.masterOrder.generationOrder.ordersWithoutGeneratedSubOrders",
                         LocaleContextHolder.getLocale(), error.getNumber(),
-                        translationService.translate(error.getError(), LocaleContextHolder.getLocale(), error.getProductNumber())));
+                        translationService.translate(error.getError(), LocaleContextHolder.getLocale())));
             });
 
         }

@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -29,19 +29,16 @@ import com.qcadoo.mes.basic.ParameterService;
 import com.qcadoo.mes.basic.constants.ProductFields;
 import com.qcadoo.mes.deliveries.ProductSynchronizationService;
 import com.qcadoo.mes.deliveries.constants.*;
-import com.qcadoo.mes.deliveries.states.constants.DeliveryStateStringValues;
 import com.qcadoo.mes.materialFlowResources.PalletValidatorService;
 import com.qcadoo.mes.materialFlowResources.constants.StorageLocationFields;
 import com.qcadoo.mes.states.StateChangeContext;
 import com.qcadoo.model.api.BigDecimalUtils;
 import com.qcadoo.model.api.Entity;
-import com.qcadoo.model.api.validators.ErrorMessage;
 import com.qcadoo.plugin.api.PluginManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -74,13 +71,11 @@ public class DeliveryStateValidationService {
     }
 
     public void validationOnReceived(final StateChangeContext stateChangeContext) {
-        checkAcceptanceOfDelivery(stateChangeContext);
         final List<String> fieldNames = Lists.newArrayList(DeliveryFields.LOCATION);
 
         checkRequired(stateChangeContext, fieldNames);
         checkDeliveredProductsDeliveredQuantities(stateChangeContext);
         checkDeliveredProductsBatches(stateChangeContext);
-        checkDeliveredProductsExpirationDates(stateChangeContext);
         checkDeliveredPackages(stateChangeContext);
         checkIfStorageLocationsAndPalletNumbersAreSet(stateChangeContext);
 
@@ -92,14 +87,6 @@ public class DeliveryStateValidationService {
             checkDeliveredProductsExternalNumbers(stateChangeContext);
 
             productSynchronizationService.synchronizeProducts(stateChangeContext, false);
-        }
-    }
-
-    private void checkAcceptanceOfDelivery(StateChangeContext stateChangeContext) {
-        final Entity delivery = stateChangeContext.getOwner();
-        if (parameterService.getParameter().getBooleanField(ParameterFieldsD.ACCEPTANCE_OF_DELIVERY)
-                && DeliveryStateStringValues.APPROVED.equals(delivery.getStringField(DeliveryFields.STATE))) {
-            stateChangeContext.addValidationError("deliveries.delivery.error.acceptanceIsRequired");
         }
     }
 
@@ -179,33 +166,11 @@ public class DeliveryStateValidationService {
         }
     }
 
-    private void checkDeliveredProductsExpirationDates(final StateChangeContext stateChangeContext) {
-        checkArgument(Objects.nonNull(stateChangeContext), L_ENTITY_IS_NULL);
-
-        final Entity delivery = stateChangeContext.getOwner();
-
-        Set<String> deliveredProductsWithoutExpirationDates = delivery.getHasManyField(DeliveryFields.DELIVERED_PRODUCTS)
-                .stream().filter(this::checkDeliveredProductExpirationDate).map(this::getDeliveredProductProductNumber)
-                .collect(Collectors.toSet());
-
-        if (!deliveredProductsWithoutExpirationDates.isEmpty()) {
-            stateChangeContext.addValidationError("deliveries.deliveredProducts.expirationDate.isRequired", false,
-                    String.join(", ", deliveredProductsWithoutExpirationDates));
-        }
-    }
-
     private boolean checkDeliveredProductBatch(final Entity deliveredProduct) {
         Entity product = deliveredProduct.getBelongsToField(DeliveredProductFields.PRODUCT);
         Entity batch = deliveredProduct.getBelongsToField(DeliveredProductFields.BATCH);
 
         return (product.getBooleanField(ProductFields.BATCH_EVIDENCE) && Objects.isNull(batch));
-    }
-
-    private boolean checkDeliveredProductExpirationDate(final Entity deliveredProduct) {
-        Entity product = deliveredProduct.getBelongsToField(DeliveredProductFields.PRODUCT);
-        Date expirationDate = deliveredProduct.getDateField(DeliveredProductFields.EXPIRATION_DATE);
-
-        return (product.getBooleanField(ProductFields.EXPIRATION_DATE_EVIDENCE) && Objects.isNull(expirationDate));
     }
 
     private void checkDeliveredPackages(final StateChangeContext stateChangeContext) {
@@ -221,27 +186,12 @@ public class DeliveryStateValidationService {
             stateChangeContext.addValidationError("deliveries.deliveredPackages.batch.isRequired", false,
                     String.join(", ", deliveredPackagesWithBatchEvidence));
         }
-
-        Set<String> deliveredPackagesWithExpirationDateEvidence = delivery.getHasManyField(DeliveryFields.DELIVERED_PACKAGES)
-                .stream().filter(this::checkDeliveredPackageExpirationDateEvidence).map(this::getDeliveredPackageProductNumber)
-                .collect(Collectors.toSet());
-
-        if (!deliveredPackagesWithExpirationDateEvidence.isEmpty()) {
-            stateChangeContext.addValidationError("deliveries.deliveredPackages.expirationDate.isRequired", false,
-                    String.join(", ", deliveredPackagesWithExpirationDateEvidence));
-        }
     }
 
     private boolean checkDeliveredPackageBatchEvidence(final Entity deliveredProduct) {
         Entity product = deliveredProduct.getBelongsToField(DeliveredProductFields.PRODUCT);
 
         return product.getBooleanField(ProductFields.BATCH_EVIDENCE);
-    }
-
-    private boolean checkDeliveredPackageExpirationDateEvidence(final Entity deliveredProduct) {
-        Entity product = deliveredProduct.getBelongsToField(DeliveredProductFields.PRODUCT);
-
-        return product.getBooleanField(ProductFields.EXPIRATION_DATE_EVIDENCE);
     }
 
     private void checkIfStorageLocationsAndPalletNumbersAreSet(final StateChangeContext stateChangeContext) {
@@ -251,46 +201,42 @@ public class DeliveryStateValidationService {
 
         List<Entity> deliveredProducts = delivery.getHasManyField(DeliveryFields.DELIVERED_PRODUCTS);
 
+        Set<String> missingStorageLocations = Sets.newHashSet();
         Set<String> missingPalletNumbers = Sets.newHashSet();
         Set<String> existsMorePallets = Sets.newHashSet();
-        List<ErrorMessage> palletErrors = Lists.newArrayList();
 
         deliveredProducts.forEach(deliveredProduct -> {
+            String productNumber = deliveredProduct.getBelongsToField(DeliveredProductFields.PRODUCT).getStringField(ProductFields.NUMBER);
             Entity storageLocation = deliveredProduct.getBelongsToField(DeliveredProductFields.STORAGE_LOCATION);
+            Entity palletNumber = deliveredProduct.getBelongsToField(DeliveredProductFields.PALLET_NUMBER);
 
-            if (Objects.nonNull(storageLocation)) {
-                boolean placeStorageLocation = storageLocation.getBooleanField(StorageLocationFields.PLACE_STORAGE_LOCATION);
+            if (Objects.isNull(storageLocation) && Objects.nonNull(palletNumber)) {
+                missingStorageLocations.add(productNumber);
+            } else {
+                if (Objects.nonNull(storageLocation)) {
+                    boolean placeStorageLocation = storageLocation.getBooleanField(StorageLocationFields.PLACE_STORAGE_LOCATION);
 
-                Entity location = deliveredProduct.getBelongsToField(DeliveredProductFields.DELIVERY).getBelongsToField(DeliveryFields.LOCATION);
-                Entity palletNumber = deliveredProduct.getBelongsToField(DeliveredProductFields.PALLET_NUMBER);
-                Entity typeOfLoadUnit = deliveredProduct.getBelongsToField(DeliveredProductFields.TYPE_OF_LOAD_UNIT);
-                if (placeStorageLocation) {
-                    String productNumber = deliveredProduct.getBelongsToField(DeliveredProductFields.PRODUCT).getStringField(ProductFields.NUMBER);
-                    if (Objects.isNull(palletNumber)) {
-                        missingPalletNumbers.add(productNumber);
-                    } else {
-                        if (!palletValidatorService.validateResources(location, storageLocation, palletNumber, typeOfLoadUnit, deliveredProduct)) {
-                            palletErrors.addAll(deliveredProduct.getErrors().values());
-
-                        }
-                        if (!palletValidatorService.notTooManyPalletsInStorageLocationAndDeliveredProducts(deliveredProduct.getDataDefinition(), deliveredProduct)) {
-                            existsMorePallets.add(storageLocation.getStringField(StorageLocationFields.NUMBER));
+                    if (placeStorageLocation) {
+                        if (Objects.isNull(palletNumber)) {
+                            missingPalletNumbers.add(productNumber);
+                        } else {
+                            if (!palletValidatorService.notTooManyPalletsInStorageLocationAndDeliveredProducts(deliveredProduct.getDataDefinition(), deliveredProduct)) {
+                                existsMorePallets.add(productNumber);
+                            }
                         }
                     }
-                } else if (!Objects.isNull(palletNumber) && !palletValidatorService.validateResources(location, storageLocation, palletNumber, typeOfLoadUnit, deliveredProduct)) {
-                    palletErrors.addAll(deliveredProduct.getErrors().values());
                 }
             }
         });
 
+        if (!missingStorageLocations.isEmpty()) {
+            stateChangeContext.addValidationError("deliveries.deliveredProducts.error.storageLocationRequired", false, String.join(", ", missingStorageLocations));
+        }
         if (!missingPalletNumbers.isEmpty()) {
             stateChangeContext.addValidationError("deliveries.deliveredProducts.error.palletNumberRequired", false, String.join(", ", missingPalletNumbers));
         }
         if (!existsMorePallets.isEmpty()) {
             stateChangeContext.addValidationError("deliveries.deliveredProducts.error.morePalletsExists", false, String.join(", ", existsMorePallets));
-        }
-        if (!palletErrors.isEmpty()) {
-            palletErrors.forEach(errorMessage -> stateChangeContext.addValidationError(errorMessage.getMessage(), false, errorMessage.getVars()));
         }
     }
 
@@ -347,4 +293,5 @@ public class DeliveryStateValidationService {
     private String getDeliveredPackageProductNumber(final Entity deliveredPackage) {
         return deliveredPackage.getBelongsToField(DeliveredPackageFields.PRODUCT).getStringField(ProductFields.NUMBER);
     }
+
 }

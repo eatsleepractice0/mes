@@ -23,14 +23,40 @@
  */
 package com.qcadoo.mes.productFlowThruDivision.listeners;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.google.common.collect.Maps;
 import com.qcadoo.mes.basic.ParameterService;
 import com.qcadoo.mes.basic.constants.ProductFields;
-import com.qcadoo.mes.productFlowThruDivision.constants.*;
+import com.qcadoo.mes.materialFlowResources.constants.DocumentFields;
+import com.qcadoo.mes.productFlowThruDivision.constants.DivisionFieldsPFTD;
+import com.qcadoo.mes.productFlowThruDivision.constants.ModelCardFields;
+import com.qcadoo.mes.productFlowThruDivision.constants.ModelCardProductFields;
+import com.qcadoo.mes.productFlowThruDivision.constants.OperationProductInComponentFieldsPFTD;
+import com.qcadoo.mes.productFlowThruDivision.constants.OperationProductOutComponentFieldsPFTD;
+import com.qcadoo.mes.productFlowThruDivision.constants.ParameterFieldsPFTD;
+import com.qcadoo.mes.productFlowThruDivision.constants.ProductFlowThruDivisionConstants;
+import com.qcadoo.mes.productFlowThruDivision.constants.ProductionFlowComponent;
+import com.qcadoo.mes.productFlowThruDivision.constants.Range;
+import com.qcadoo.mes.productFlowThruDivision.constants.TechnologyFieldsPFTD;
+import com.qcadoo.mes.productFlowThruDivision.hooks.TechnologyDetailsHooksPFTD;
 import com.qcadoo.mes.productionCounting.constants.TechnologyFieldsPC;
 import com.qcadoo.mes.productionCounting.constants.TypeOfProductionRecording;
 import com.qcadoo.mes.technologies.OperationComponentDataProvider;
-import com.qcadoo.mes.technologies.constants.*;
+import com.qcadoo.mes.technologies.constants.OperationFields;
+import com.qcadoo.mes.technologies.constants.OperationProductInComponentFields;
+import com.qcadoo.mes.technologies.constants.OperationProductOutComponentFields;
+import com.qcadoo.mes.technologies.constants.TechnologiesConstants;
+import com.qcadoo.mes.technologies.constants.TechnologyFields;
+import com.qcadoo.mes.technologies.constants.TechnologyOperationComponentFields;
 import com.qcadoo.model.api.DataDefinition;
 import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
@@ -39,20 +65,16 @@ import com.qcadoo.view.api.ComponentState;
 import com.qcadoo.view.api.ViewDefinitionState;
 import com.qcadoo.view.api.components.FieldComponent;
 import com.qcadoo.view.api.components.FormComponent;
+import com.qcadoo.view.api.components.GridComponent;
 import com.qcadoo.view.api.components.LookupComponent;
+import com.qcadoo.view.api.components.lookup.FilterValueHolder;
 import com.qcadoo.view.constants.QcadooViewConstants;
-import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Service
 public class TechnologyDetailsListenersPFTD {
+
+    @Autowired
+    private TechnologyDetailsHooksPFTD technologyDetailsHooksPFTD;
 
     @Autowired
     private OperationComponentDataProvider operationComponentDataProvider;
@@ -77,7 +99,7 @@ public class TechnologyDetailsListenersPFTD {
 
     @Transactional
     public void fillLocationsInComponents(final Entity technology) {
-        if (Range.ONE_DIVISION.getStringValue().equals(technology.getStringField(TechnologyFields.RANGE))) {
+        if (Range.ONE_DIVISION.getStringValue().equals(technology.getStringField(TechnologyFieldsPFTD.RANGE))) {
             fillForOneDivision(technology);
         } else {
             fillForManyDivision(technology);
@@ -341,7 +363,7 @@ public class TechnologyDetailsListenersPFTD {
         FormComponent form = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
         Entity technology = form.getPersistedEntityWithIncludedFormValues();
 
-        if (Range.ONE_DIVISION.getStringValue().equals(technology.getStringField(TechnologyFields.RANGE))) {
+        if (Range.ONE_DIVISION.getStringValue().equals(technology.getStringField(TechnologyFieldsPFTD.RANGE))) {
             LookupComponent productsFlowLocationLookup = (LookupComponent) view
                     .getComponentByReference(TechnologyFieldsPFTD.PRODUCTS_FLOW_LOCATION);
 
@@ -352,6 +374,19 @@ public class TechnologyDetailsListenersPFTD {
                 productsFlowLocationLookup.setEnabled(false);
                 productsFlowLocationLookup.setFieldValue(null);
             }
+        }
+    }
+
+    public void onDivisionChange(final ViewDefinitionState view, final ComponentState componentState, final String[] args) {
+        technologyDetailsHooksPFTD.fillFieldsForOneDivisionRange(view);
+    }
+
+    private void setFieldsVisible(final ViewDefinitionState view, final List<String> references, final boolean isVisible) {
+        for (String reference : references) {
+            FieldComponent field = (FieldComponent) view.getComponentByReference(reference);
+
+            field.setVisible(isVisible);
+            field.requestComponentUpdateState();
         }
     }
 
@@ -372,8 +407,7 @@ public class TechnologyDetailsListenersPFTD {
                 TechnologiesConstants.MODEL_OPERATION_PRODUCT_OUT_COMPONENT);
     }
 
-    public void createModelCard(final ViewDefinitionState view, final ComponentState componentState,
-                                final String[] args) {
+    public void createModelCard(final ViewDefinitionState view, final ComponentState componentState, final String[] args) {
         FormComponent technologyForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
 
         Entity technology = technologyForm.getPersistedEntityWithIncludedFormValues();
@@ -403,11 +437,10 @@ public class TechnologyDetailsListenersPFTD {
         view.redirectTo(url, false, true, parameters);
     }
 
-    public void addMultipleProductionLines(final ViewDefinitionState view, final ComponentState componentState,
-                                           final String[] args) {
+    public void addMultipleProductionLines(final ViewDefinitionState view, final ComponentState componentState, final String[] args) {
         FormComponent formComponent = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
         Entity technology = formComponent.getPersistedEntityWithIncludedFormValues();
-        Entity division = technology.getBelongsToField(TechnologyFields.DIVISION);
+        Entity division = technology.getBelongsToField(TechnologyFieldsPFTD.DIVISION);
 
         Long technologyId = technology.getId();
 

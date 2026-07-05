@@ -24,7 +24,6 @@
 package com.qcadoo.mes.deliveries.listeners;
 
 import com.qcadoo.mes.basic.CalculationQuantityService;
-import com.qcadoo.mes.basic.constants.PalletNumberFields;
 import com.qcadoo.mes.basic.constants.ProductFields;
 import com.qcadoo.mes.deliveries.DeliveriesService;
 import com.qcadoo.mes.deliveries.constants.DeliveredProductFields;
@@ -55,6 +54,9 @@ public class DeliveredProductDetailsListeners {
     private NumberService numberService;
 
     @Autowired
+    private CalculationQuantityService calculationQuantityService;
+
+    @Autowired
     private DeliveriesService deliveriesService;
 
     @Autowired
@@ -63,11 +65,7 @@ public class DeliveredProductDetailsListeners {
     @Autowired
     private MaterialFlowResourcesService materialFlowResourcesService;
 
-    @Autowired
-    private CalculationQuantityService calculationQuantityService;
-
-    public void onSelectedEntityChange(final ViewDefinitionState view, final ComponentState state,
-                                       final String[] args) {
+    public void onSelectedEntityChange(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         fillConversion(view, state, args);
         quantityChange(view, state, args);
         fillOrderedQuantities(view, state, args);
@@ -75,14 +73,6 @@ public class DeliveredProductDetailsListeners {
         fillCurrencyFields(view, state, args);
         setBatchLookupProductFilterValue(view, state, args);
         setStorageLocationLookup(view);
-        setBatchLookup(view);
-    }
-
-    private void setBatchLookup(ViewDefinitionState view) {
-        LookupComponent batchLookup = (LookupComponent) view
-                .getComponentByReference(DeliveredProductFields.BATCH);
-        batchLookup.setFieldValue(null);
-        batchLookup.requestComponentUpdateState();
     }
 
     public void fillConversion(final ViewDefinitionState view, final ComponentState state, final String[] args) {
@@ -97,56 +87,19 @@ public class DeliveredProductDetailsListeners {
         deliveredProductDetailsHooks.fillCurrencyFields(view);
     }
 
-    public void fillTypeOfLoadUnitField(final ViewDefinitionState view, final ComponentState state,
-                                        final String[] args) {
-        FormComponent deliveredProductForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
-        LookupComponent palletNumberLookup = (LookupComponent) view.getComponentByReference(DeliveredProductFields.PALLET_NUMBER);
-        LookupComponent typeOfLoadUnitLookup = (LookupComponent) view.getComponentByReference(DeliveredProductFields.TYPE_OF_LOAD_UNIT);
-
-        Entity deliveredProduct = deliveredProductForm.getEntity();
-        Entity delivery = deliveredProduct.getBelongsToField(DeliveredProductFields.DELIVERY);
-
-        Entity palletNumber = palletNumberLookup.getEntity();
-        Long typeOfLoadUnit = null;
-
-        if (Objects.nonNull(palletNumber)) {
-            typeOfLoadUnit = getTypeLoadUnit(delivery, palletNumber);
-        }
-
-        typeOfLoadUnitLookup.setFieldValue(typeOfLoadUnit);
-        typeOfLoadUnitLookup.requestComponentUpdateState();
-    }
-
-    public Long getTypeLoadUnit(Entity delivery, Entity palletNumber) {
-        Entity location = delivery.getBelongsToField(DeliveryFields.LOCATION);
-        Long typeOfLoadUnit = materialFlowResourcesService.getTypeOfLoadUnitByPalletNumber(location.getId(), palletNumber.getStringField(PalletNumberFields.NUMBER));
-        if (typeOfLoadUnit == null) {
-            for (Entity dp : delivery.getHasManyField(DeliveryFields.DELIVERED_PRODUCTS)) {
-                Entity dpPalletNumber = dp.getBelongsToField(DeliveredProductFields.PALLET_NUMBER);
-                if (dpPalletNumber != null && dpPalletNumber.getId().equals(palletNumber.getId())) {
-                    Entity dpTypeOfLoadUnit = dp.getBelongsToField(DeliveredProductFields.TYPE_OF_LOAD_UNIT);
-                    if (dpTypeOfLoadUnit != null) {
-                        typeOfLoadUnit = dpTypeOfLoadUnit.getId();
-                    }
-                    break;
-                }
-            }
-        }
-
-        return typeOfLoadUnit;
+    public void fillPalletTypeField(final ViewDefinitionState view, final ComponentState state, final String[] args) {
+        deliveredProductDetailsHooks.fillPalletTypeField(view);
     }
 
     public void fillOrderedQuantities(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         deliveredProductDetailsHooks.fillOrderedQuantities(view);
     }
 
-    public void calculatePriceFromTotalPrice(final ViewDefinitionState view, final ComponentState state,
-                                             final String[] args) {
+    public void calculatePriceFromTotalPrice(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         deliveriesService.recalculatePriceFromTotalPrice(view, DeliveredProductFields.DELIVERED_QUANTITY);
     }
 
-    public void calculatePriceFromPricePerUnit(final ViewDefinitionState view, final ComponentState state,
-                                               final String[] args) {
+    public void calculatePriceFromPricePerUnit(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         deliveriesService.recalculatePriceFromPricePerUnit(view, DeliveredProductFields.DELIVERED_QUANTITY);
     }
 
@@ -163,16 +116,15 @@ public class DeliveredProductDetailsListeners {
             return;
         }
 
+        BigDecimal conversion = deliveredProduct.getDecimalField(DeliveredProductFields.CONVERSION);
         BigDecimal deliveredQuantity = deliveredProduct.getDecimalField(DeliveredProductFields.DELIVERED_QUANTITY);
 
-        if (Objects.nonNull(deliveredQuantity)) {
-            String unit = product.getStringField(ProductFields.UNIT);
-            String additionalUnit = Optional.ofNullable(product.getStringField(ProductFields.ADDITIONAL_UNIT))
-                    .orElse(unit);
+        if (Objects.nonNull(conversion) && Objects.nonNull(deliveredQuantity)) {
+            String additionalQuantityUnit = Optional.ofNullable(product.getStringField(ProductFields.ADDITIONAL_UNIT))
+                    .orElse(product.getStringField(ProductFields.UNIT));
 
-            BigDecimal conversion = deliveriesService.getConversion(product, unit, additionalUnit, deliveredProduct.getDecimalField(DeliveredProductFields.CONVERSION));
             BigDecimal newAdditionalQuantity = calculationQuantityService.calculateAdditionalQuantity(deliveredQuantity,
-                    conversion, additionalUnit);
+                    conversion, additionalQuantityUnit);
 
             FieldComponent additionalQuantityField = (FieldComponent) view
                     .getComponentByReference(DeliveredProductFields.ADDITIONAL_QUANTITY);
@@ -204,8 +156,7 @@ public class DeliveredProductDetailsListeners {
         return valid;
     }
 
-    public void additionalQuantityChange(final ViewDefinitionState view, final ComponentState state,
-                                         final String[] args) {
+    public void additionalQuantityChange(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         FormComponent deliveredProductForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
         Entity deliveredProduct = deliveredProductForm.getEntity();
         Entity product = deliveredProduct.getBelongsToField(DeliveredProductFields.PRODUCT);
@@ -214,16 +165,14 @@ public class DeliveredProductDetailsListeners {
             return;
         }
 
+        BigDecimal conversion = deliveredProduct.getDecimalField(DeliveredProductFields.CONVERSION);
         BigDecimal additionalQuantity = deliveredProduct.getDecimalField(DeliveredProductFields.ADDITIONAL_QUANTITY);
 
-        if (Objects.nonNull(additionalQuantity)) {
-            String unit = product.getStringField(ProductFields.UNIT);
-            String additionalUnit = Optional.ofNullable(product.getStringField(ProductFields.ADDITIONAL_UNIT))
-                    .orElse(unit);
+        if (Objects.nonNull(conversion) && Objects.nonNull(additionalQuantity)) {
+            String deliveredQuantityUnit = product.getStringField(ProductFields.UNIT);
 
-            BigDecimal conversion = deliveriesService.getConversion(product, unit, additionalUnit, deliveredProduct.getDecimalField(DeliveredProductFields.CONVERSION));
-            BigDecimal newDeliveredQuantity = calculationQuantityService.calculateQuantity(additionalQuantity,
-                    conversion, unit);
+            BigDecimal newDeliveredQuantity = calculationQuantityService.calculateQuantity(additionalQuantity, conversion,
+                    deliveredQuantityUnit);
 
             FieldComponent deliveredQuantityField = (FieldComponent) view
                     .getComponentByReference(DeliveredProductFields.DELIVERED_QUANTITY);
@@ -233,8 +182,7 @@ public class DeliveredProductDetailsListeners {
         }
     }
 
-    public void setBatchLookupProductFilterValue(final ViewDefinitionState view, final ComponentState state,
-                                                 final String[] args) {
+    public void setBatchLookupProductFilterValue(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         FormComponent deliveredProductForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
 
         Entity deliveredProduct = deliveredProductForm.getPersistedEntityWithIncludedFormValues();
@@ -263,7 +211,7 @@ public class DeliveredProductDetailsListeners {
             filterValueHolder.put(DeliveredProductFields.PRODUCT, product.getId());
 
             if (Objects.nonNull(location)) {
-                Optional<Entity> mayBeStorageLocation = materialFlowResourcesService.findStorageLocationForProduct(location, product.getId());
+                Optional<Entity> mayBeStorageLocation = materialFlowResourcesService.findStorageLocationForProduct(location, product);
 
                 if (mayBeStorageLocation.isPresent()) {
                     Entity storageLocation = mayBeStorageLocation.get();

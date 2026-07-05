@@ -8,11 +8,11 @@ class DeliveryByPalletTypeValue {
 
    private Map<String, Integer> palletQuantity = Maps.newHashMap();
 
-    public Map<String, Integer> addQuantityForPallet(String typeOfLoadUnit, int quantity){
-        if(palletQuantity.containsKey(typeOfLoadUnit)){
-            palletQuantity.put(typeOfLoadUnit, palletQuantity.get(typeOfLoadUnit) + quantity);
+    public Map<String, Integer> addQuantityForPallet(String palletType, int quantity){
+        if(palletQuantity.containsKey(palletType)){
+            palletQuantity.put(palletType, palletQuantity.get(palletType) + quantity);
         } else {
-            palletQuantity.put(typeOfLoadUnit, quantity);
+            palletQuantity.put(palletType, quantity);
         }
         return palletQuantity;
     }

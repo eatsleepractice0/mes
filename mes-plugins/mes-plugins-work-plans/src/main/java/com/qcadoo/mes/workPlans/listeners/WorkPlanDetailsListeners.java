@@ -253,7 +253,7 @@ public class WorkPlanDetailsListeners {
         Entity technology = order.getBelongsToField(OrderFields.TECHNOLOGY);
 
         if (technology != null) {
-            List<Entity> tocs = technology
+            List<Entity> tocs = order.getBelongsToField(OrderFields.TECHNOLOGY)
                     .getHasManyField(TechnologyFields.OPERATION_COMPONENTS);
 
             for (Entity toc : tocs) {

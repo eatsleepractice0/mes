@@ -38,6 +38,4 @@
 			expression="org.springframework.stereotype.Controller" />
 	</context:component-scan>
 
-	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl"/>
-
 </beans>

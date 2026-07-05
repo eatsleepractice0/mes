@@ -171,11 +171,6 @@
 		<appender-ref ref="tool-log" />
 	</logger>
 
-	<logger name="org.quartz.core.JobRunShell" additivity="false">
-		<level value="debug" />
-		<appender-ref ref="tool-log" />
-	</logger>
-
 	<logger name="org.springframework">
 		<level value="info" />
 	</logger>

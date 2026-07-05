@@ -59,6 +59,10 @@
             <version>[1.1.8</version>
         </dependency>
         <dependency>
+            <plugin>technologies</plugin>
+            <version>[1.1.7</version>
+        </dependency>
+        <dependency>
             <plugin>materialFlowResources</plugin>
             <version>[1.2.1</version>
         </dependency>
@@ -73,7 +77,6 @@
         <model:model model="columnForDeliveries" resource="model/columnForDeliveries.xml"/>
         <model:model model="columnForOrders" resource="model/columnForOrders.xml"/>
         <model:model model="delivery" resource="model/delivery.xml"/>
-        <model:model model="deliveryDto" resource="model/deliveryDto.xml"/>
         <model:model model="deliveredProduct" resource="model/deliveredProduct.xml"/>
         <model:model model="deliveredProductDto" resource="model/deliveredProductDto.xml"/>
         <model:model model="deliveredProductMulti" resource="model/deliveredProductMulti.xml"/>
@@ -99,7 +102,7 @@
 
         <model:model-field plugin="basic" model="shift">
             <model:hasMany name="deliveryStateChanges" plugin="deliveries"
-                           model="deliveryStateChange" joinField="shift"/>
+                           model="deliveryStateChange" joinField="shift" cascade="nullify"/>
         </model:model-field>
 
         <model:model-field plugin="basic" model="parameter">
@@ -110,22 +113,6 @@
 
         <model:model-field plugin="basic" model="parameter">
             <model:boolean name="deliveryUseNominalCostWhenPriceNotSpecified" default="false"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="parameter">
-            <model:boolean name="acceptanceOfDelivery" default="false"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="parameter">
-            <model:boolean name="sendEmailToSupplier" default="false"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="parameter">
-            <model:text name="deliveryEmailSubject"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="parameter">
-            <model:text name="deliveryEmailBody"/>
         </model:model-field>
 
         <model:model-field plugin="basic" model="parameter">
@@ -226,35 +213,6 @@
             <model:boolean name="requireSupplierIdentification" default="false"/>
         </model:model-field>
 
-        <model:model-field model="parameter" plugin="basic">
-            <model:enum name="includeInCalculationDeliveries"
-                        values="01confirmedDeliveries,02unconfirmedDeliveries,03nonDraftDeliveries"
-                        required="true" default="01confirmedDeliveries"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="typeOfLoadUnit">
-            <model:hasMany name="deliveredProducts" plugin="deliveries" model="deliveredProduct" joinField="typeOfLoadUnit"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="typeOfLoadUnit">
-            <model:hasMany name="deliveredProductsMulti" plugin="deliveries" model="deliveredProductMulti" joinField="typeOfLoadUnit"/>
-        </model:model-field>
-
-        <model:model-field model="storageLocation" plugin="materialFlowResources">
-            <model:hasMany name="deliveredProducts" model="deliveredProduct"
-                           joinField="storageLocation" plugin="deliveries"/>
-        </model:model-field>
-
-        <model:model-field plugin="qcadooSecurity" model="user">
-            <model:hasMany name="deliveredProducts" model="deliveredProduct" joinField="pickingWorker"
-                           plugin="deliveries"/>
-        </model:model-field>
-
-        <model:model-hook model="storageLocation" plugin="materialFlowResources">
-            <model:onDelete class="com.qcadoo.mes.deliveries.hooks.StorageLocationHooksD"
-                            method="onDelete"/>
-        </model:model-hook>
-
         <model:model-hook plugin="basic" model="company">
             <model:onDelete class="com.qcadoo.mes.deliveries.hooks.CompanyHooksD"
                             method="onDelete"/>
@@ -271,7 +229,7 @@
                           method="onSave"/>
         </model:model-hook>
 
-        <model:model-field plugin="basic" model="qualityCard">
+        <model:model-field plugin="technologies" model="qualityCard">
             <model:hasMany name="orderedProducts" plugin="deliveries" model="orderedProduct" joinField="qualityCard"/>
         </model:model-field>
 
@@ -339,16 +297,6 @@
             <model:validatesWith
                     class="com.qcadoo.mes.deliveries.hooks.SupplyParameterHooks"
                     method="checkIfNumberPatternIsSelected" />
-        </model:model-hook>
-        <model:model-hook model="parameter" plugin="basic">
-            <model:validatesWith
-                    class="com.qcadoo.mes.deliveries.hooks.SupplyParameterHooks"
-                    method="checkIfIncludeInCalculationDeliveriesIsSelected" />
-        </model:model-hook>
-        <model:model-hook model="parameter" plugin="basic">
-            <model:validatesWith
-                    class="com.qcadoo.mes.deliveries.hooks.SupplyParameterHooks"
-                    method="checkIfDeliveryEmailFieldsFilled" />
         </model:model-hook>
         <model:model-hook model="parameter" plugin="basic">
             <model:onSave

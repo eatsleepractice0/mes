@@ -55,8 +55,12 @@
 
     <dependencies>
         <dependency>
-            <plugin>timeNormsForOperations</plugin>
+            <plugin>technologies</plugin>
             <version>[1.4.0</version>
+        </dependency>
+        <dependency>
+            <plugin>timeNormsForOperations</plugin>
+            <version>[0.4.0</version>
         </dependency>
     </dependencies>
 
@@ -116,22 +120,6 @@
         <model:model model="splitOrderHelper" resource="model/splitOrderHelper.xml"/>
         <model:model model="splitOrderParent" resource="model/splitOrderParent.xml"/>
         <model:model model="splitOrderChild" resource="model/splitOrderChild.xml"/>
-
-        <model:model model="dimensionControlAttribute" resource="model/dimensionControlAttribute.xml"/>
-
-        <model:model-field plugin="basic" model="parameter">
-            <model:boolean name="orderDimensionControlOfProducts" default="false"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="parameter">
-            <model:hasMany name="orderDimensionControlAttributes" plugin="orders"
-                           model="dimensionControlAttribute" joinField="parameter" cascade="delete"/>
-        </model:model-field>
-
-        <model:model-field plugin="basic" model="attribute">
-            <model:hasMany name="orderDimensionControlAttributes" plugin="orders"
-                           model="dimensionControlAttribute" joinField="attribute" cascade="delete"/>
-        </model:model-field>
 
         <model:model-field plugin="productionLines" model="productionLine">
             <model:hasMany name="positions" model="productionLineSchedulePosition" plugin="orders" joinField="productionLine"/>
@@ -196,6 +184,11 @@
             <model:hasMany name="orders" plugin="orders" model="order"
                            joinField="technology"/>
         </model:model-field>
+
+<!--        <model:model-field plugin="technologies" model="technology">
+            <model:hasMany name="ordersUsingPrototype" plugin="orders" model="order"
+                           joinField="technologyPrototype"/>
+        </model:model-field>-->
 
         <model:model-field plugin="basic" model="parameter">
             <model:boolean name="createCollectiveOrders" default="false"/>
@@ -265,6 +258,9 @@
         </model:model-field>
 
         <model:model-field plugin="basic" model="parameter">
+            <model:boolean name="allowTechnologyTreeChangeInPendingOrder" default="false"/>
+        </model:model-field>
+        <model:model-field plugin="basic" model="parameter">
             <model:boolean name="reasonNeededWhenCorrectingTheRequestedVolume" default="false"/>
         </model:model-field>
 
@@ -332,6 +328,10 @@
             <model:enum name="workerAssignCriterion"
                   values="01workstationLastOperatorLatestFinished,02workstationLastOperatorEarliestFinished,03workstationDefaultOperator"
                   default="01workstationLastOperatorLatestFinished"/>
+        </model:model-field>
+
+        <model:model-field plugin="basic" model="parameter">
+            <model:boolean name="scheduleForBuffer" default="false"/>
         </model:model-field>
 
         <model:model-field plugin="basic" model="parameter">
@@ -506,7 +506,7 @@
         </model:model-field>
 
         <model:model-field plugin="basic" model="staff">
-            <model:manyToMany name="orders" model="order" plugin="orders" joinField="staff"/>
+            <model:manyToMany name="orders" model="order" plugin="orders" joinField="staff" cascade="nullify"/>
         </model:model-field>
 
         <model:model-field plugin="basic" model="attribute">
@@ -551,13 +551,13 @@
                         view="ordersPlanningList" defaultAuthorizationRole="ROLE_ORDERS_VIEW"/>
 
         <menu:menu-item name="schedulesList" category="orders"
-                        view="schedulesList" defaultAuthorizationRole="ROLE_SCHEDULES"/>
+                        view="schedulesList" defaultAuthorizationRole="ROLE_PLANNING"/>
 
         <menu:menu-item name="productionLineSchedulesList" category="orders"
                         view="productionLineSchedulesList" defaultAuthorizationRole="ROLE_PRODUCTION_LINE_SCHEDULES"/>
 
         <menu:menu-item name="operationalTasks" category="orders"
-                        view="operationalTasksList" defaultAuthorizationRole="ROLE_OPERATIONAL_TASKS"/>
+                        view="operationalTasksList" defaultAuthorizationRole="ROLE_PLANNING"/>
 
         <menu:menu-item name="orderPacksList" category="orders"
                         view="orderPacksList" defaultAuthorizationRole="ROLE_PLANNING"/>
@@ -572,10 +572,10 @@
                         url="/orderTechnologicalProcessesAnalysis.html" defaultAuthorizationRole="ROLE_ANALYSIS_VIEWER"/>
 
         <menu:menu-item-url name="planningParameters" category="parameters" url="/planningParameters.html"
-                            defaultAuthorizationRole="ROLE_PLANNING_PARAMETERS"/>
+                            defaultAuthorizationRole="ROLE_PARAMETERS"/>
 
         <menu:menu-item name="workstationChangeoverForOperationalTasksList" category="orders"
-                        view="workstationChangeoverForOperationalTasksList" defaultAuthorizationRole="ROLE_WORKSTATION_CHANGEOVERS"/>
+                        view="workstationChangeoverForOperationalTasksList" defaultAuthorizationRole="ROLE_PLANNING"/>
 
         <view:view resource="view/ordersList.xml"/>
         <view:view resource="view/ordersImport.xml"/>

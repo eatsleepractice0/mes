@@ -24,18 +24,20 @@
 package com.qcadoo.mes.deliveries.listeners;
 
 import com.qcadoo.mes.basic.CalculationQuantityService;
-import com.qcadoo.mes.basic.constants.BasicConstants;
 import com.qcadoo.mes.basic.constants.ProductFields;
-import com.qcadoo.mes.basic.constants.QualityCardFields;
+import com.qcadoo.mes.basic.constants.UnitConversionItemFieldsB;
 import com.qcadoo.mes.deliveries.DeliveriesService;
-import com.qcadoo.mes.deliveries.constants.DeliveredProductFields;
 import com.qcadoo.mes.deliveries.constants.OrderedProductFields;
 import com.qcadoo.mes.deliveries.hooks.OrderedProductDetailsHooks;
+import com.qcadoo.mes.technologies.constants.QualityCardFields;
+import com.qcadoo.mes.technologies.constants.TechnologiesConstants;
 import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.model.api.NumberService;
 import com.qcadoo.model.api.search.JoinType;
 import com.qcadoo.model.api.search.SearchRestrictions;
+import com.qcadoo.model.api.units.PossibleUnitConversions;
+import com.qcadoo.model.api.units.UnitConversionService;
 import com.qcadoo.view.api.ComponentState;
 import com.qcadoo.view.api.ComponentState.MessageType;
 import com.qcadoo.view.api.ViewDefinitionState;
@@ -59,6 +61,12 @@ public class OrderedProductDetailsListeners {
     private NumberService numberService;
 
     @Autowired
+    private UnitConversionService unitConversionService;
+
+    @Autowired
+    private CalculationQuantityService calculationQuantityService;
+
+    @Autowired
     private DeliveriesService deliveriesService;
 
     @Autowired
@@ -67,24 +75,12 @@ public class OrderedProductDetailsListeners {
     @Autowired
     private DataDefinitionService dataDefinitionService;
 
-    @Autowired
-    private CalculationQuantityService calculationQuantityService;
-
     public void onProductChange(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         fillUnitFields(view, state, args);
         fillCurrencyFields(view, state, args);
         setBatchLookupProductFilterValue(view, state, args);
         fillQualityCard(view);
-        setBatchLookup(view);
     }
-
-    private void setBatchLookup(ViewDefinitionState view) {
-        LookupComponent batchLookup = (LookupComponent) view
-                .getComponentByReference(OrderedProductFields.BATCH);
-        batchLookup.setFieldValue(null);
-        batchLookup.requestComponentUpdateState();
-    }
-
 
     public void fillUnitFields(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         orderedProductDetailsHooks.fillUnitFields(view);
@@ -104,7 +100,7 @@ public class OrderedProductDetailsListeners {
 
             if (!StringUtils.isEmpty(additionalUnit)) {
                 String conversion = numberService
-                        .formatWithMinimumFractionDigits(deliveriesService.getConversion(product, unit, additionalUnit, null), 0);
+                        .formatWithMinimumFractionDigits(getConversion(product, unit, additionalUnit), 0);
 
                 conversionField.setFieldValue(conversion);
                 conversionField.setEnabled(true);
@@ -115,17 +111,27 @@ public class OrderedProductDetailsListeners {
         }
     }
 
+    private BigDecimal getConversion(final Entity product, final String unit, final String additionalUnit) {
+        PossibleUnitConversions unitConversions = unitConversionService.getPossibleConversions(unit,
+                searchCriteriaBuilder -> searchCriteriaBuilder.add(SearchRestrictions.belongsTo(
+                        UnitConversionItemFieldsB.PRODUCT, product)));
+
+        if (unitConversions.isDefinedFor(additionalUnit)) {
+            return unitConversions.asUnitToConversionMap().get(additionalUnit);
+        } else {
+            return BigDecimal.ZERO;
+        }
+    }
+
     public void fillCurrencyFields(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         orderedProductDetailsHooks.fillCurrencyFields(view);
     }
 
-    public void calculatePriceFromTotalPrice(final ViewDefinitionState view, final ComponentState state,
-                                             final String[] args) {
+    public void calculatePriceFromTotalPrice(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         deliveriesService.recalculatePriceFromTotalPrice(view, OrderedProductFields.ORDERED_QUANTITY);
     }
 
-    public void calculatePriceFromPricePerUnit(final ViewDefinitionState view, final ComponentState state,
-                                               final String[] args) {
+    public void calculatePriceFromPricePerUnit(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         deliveriesService.recalculatePriceFromPricePerUnit(view, OrderedProductFields.ORDERED_QUANTITY);
     }
 
@@ -141,16 +147,15 @@ public class OrderedProductDetailsListeners {
             return;
         }
 
+        BigDecimal conversion = orderedProduct.getDecimalField(OrderedProductFields.CONVERSION);
         BigDecimal orderedQuantity = orderedProduct.getDecimalField(OrderedProductFields.ORDERED_QUANTITY);
 
-        if (Objects.nonNull(orderedQuantity)) {
-            String unit = product.getStringField(ProductFields.UNIT);
-            String additionalUnit = Optional.ofNullable(product.getStringField(ProductFields.ADDITIONAL_UNIT)).orElse(
-                    unit);
+        if (Objects.nonNull(conversion) && Objects.nonNull(orderedQuantity)) {
+            String additionalQuantityUnit = Optional.ofNullable(product.getStringField(ProductFields.ADDITIONAL_UNIT)).orElse(
+                    product.getStringField(ProductFields.UNIT));
 
-            BigDecimal conversion = deliveriesService.getConversion(product, unit, additionalUnit, orderedProduct.getDecimalField(OrderedProductFields.CONVERSION));
             BigDecimal newAdditionalQuantity = calculationQuantityService.calculateAdditionalQuantity(orderedQuantity,
-                    conversion, additionalUnit);
+                    conversion, additionalQuantityUnit);
 
             FieldComponent additionalQuantityField = (FieldComponent) view
                     .getComponentByReference(OrderedProductFields.ADDITIONAL_QUANTITY);
@@ -161,8 +166,8 @@ public class OrderedProductDetailsListeners {
     }
 
     private boolean decimalFieldsInvalid(final FormComponent formComponent) {
-        String[] fieldNames = {OrderedProductFields.ADDITIONAL_QUANTITY, OrderedProductFields.CONVERSION,
-                OrderedProductFields.ORDERED_QUANTITY};
+        String[] fieldNames = { OrderedProductFields.ADDITIONAL_QUANTITY, OrderedProductFields.CONVERSION,
+                OrderedProductFields.ORDERED_QUANTITY };
 
         boolean valid = false;
 
@@ -184,8 +189,7 @@ public class OrderedProductDetailsListeners {
         return valid;
     }
 
-    public void additionalQuantityChange(final ViewDefinitionState view, final ComponentState state,
-                                         final String[] args) {
+    public void additionalQuantityChange(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         FormComponent orderedProductForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
         Entity orderedProduct = orderedProductForm.getEntity();
 
@@ -195,16 +199,14 @@ public class OrderedProductDetailsListeners {
             return;
         }
 
+        BigDecimal conversion = orderedProduct.getDecimalField(OrderedProductFields.CONVERSION);
         BigDecimal additionalQuantity = orderedProduct.getDecimalField(OrderedProductFields.ADDITIONAL_QUANTITY);
 
-        if (Objects.nonNull(additionalQuantity)) {
-            String unit = product.getStringField(ProductFields.UNIT);
-            String additionalUnit = Optional.ofNullable(product.getStringField(ProductFields.ADDITIONAL_UNIT)).orElse(
-                    unit);
+        if (Objects.nonNull(conversion) && Objects.nonNull(additionalQuantity)) {
+            String orderedQuantityUnit = product.getStringField(ProductFields.UNIT);
 
-            BigDecimal conversion = deliveriesService.getConversion(product, unit, additionalUnit, orderedProduct.getDecimalField(OrderedProductFields.CONVERSION));
-            BigDecimal newOrderedQuantity = calculationQuantityService.calculateQuantity(additionalQuantity,
-                    conversion, unit);
+            BigDecimal newOrderedQuantity = calculationQuantityService.calculateQuantity(additionalQuantity, conversion,
+                    orderedQuantityUnit);
 
             FieldComponent orderedQuantityField = (FieldComponent) view
                     .getComponentByReference(OrderedProductFields.ORDERED_QUANTITY);
@@ -216,8 +218,7 @@ public class OrderedProductDetailsListeners {
         }
     }
 
-    public void setBatchLookupProductFilterValue(final ViewDefinitionState view, final ComponentState state,
-                                                 final String[] args) {
+    public void setBatchLookupProductFilterValue(final ViewDefinitionState view, final ComponentState state, final String[] args) {
         FormComponent orderedProductForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
 
         Entity orderedProduct = orderedProductForm.getPersistedEntityWithIncludedFormValues();
@@ -232,11 +233,11 @@ public class OrderedProductDetailsListeners {
         if (Objects.nonNull(product)) {
             LookupComponent qualityCardLookup = (LookupComponent) view.getComponentByReference(OrderedProductFields.QUALITY_CARD);
             List<Entity> entities = dataDefinitionService
-                    .get(BasicConstants.PLUGIN_IDENTIFIER, BasicConstants.MODEL_QUALITY_CARD).find()
+                    .get(TechnologiesConstants.PLUGIN_IDENTIFIER, TechnologiesConstants.MODEL_QUALITY_CARD).find()
                     .add(SearchRestrictions.eq(QualityCardFields.STATE, "02accepted"))
                     .createAlias(QualityCardFields.PRODUCTS, QualityCardFields.PRODUCTS, JoinType.INNER)
                     .add(SearchRestrictions.eq(QualityCardFields.PRODUCTS + ".id", product.getId())).list().getEntities();
-            if (entities.size() == 1) {
+            if(entities.size() == 1) {
                 qualityCardLookup.setFieldValue(entities.get(0).getId());
             } else {
                 qualityCardLookup.setFieldValue(null);

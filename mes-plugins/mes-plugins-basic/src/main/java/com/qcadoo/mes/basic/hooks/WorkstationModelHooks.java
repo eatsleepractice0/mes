@@ -99,6 +99,10 @@ public class WorkstationModelHooks {
     }
 
     public void onCreate(final DataDefinition workstationDD, final Entity workstation) {
+        if (Objects.isNull(workstation.getField(WorkstationFields.BUFFER))) {
+            workstation.setField(WorkstationFields.BUFFER, false);
+        }
+
         workstation.setField(WorkstationFields.STATE, WorkstationStateStringValues.STOPPED);
     }
 

@@ -11,6 +11,4 @@ public final class WarehouseStockReportFields {
     public static final String LOCATION = "location";
 
     public static final String GENERATED = "generated";
-
-    public static final String CATEGORY = "category";
 }

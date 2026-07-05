@@ -75,12 +75,6 @@
                     </script>
                 </bigButton>
             </group>
-            <group name="storageLocations">
-                <bigButton name="changeStorageLocations"
-                           icon="copyIcon24.png"
-                           action="#{grid}.fireEvent(changeStorageLocations);"
-                           message="materialFlowResources.resourcesList.window.ribbon.storageLocations.changeStorageLocations.description" enabled="false"/>
-            </group>
         </ribbon>
 
         <component type="grid" name="resourceGrid" reference="grid">
@@ -100,7 +94,6 @@
             <option type="column" name="availableQuantity" fields="availableQuantity"/>
             <option type="column" name="price" fields="price" width="60" authorizationRole="ROLE_RESOURCE_PRICE" />
             <option type="column" name="value" fields="value" width="60" authorizationRole="ROLE_RESOURCE_PRICE" />
-            <option type="column" name="createDate" fields="createDate"/>
             <option type="column" name="time" fields="time"/>
             <option type="column" name="productionDate" fields="productionDate"/>
             <option type="column" name="expirationDate" fields="expirationDate"
@@ -112,7 +105,7 @@
             <option type="column" name="batch" fields="batchNumber"/>
             <option type="column" name="storageLocation" fields="storageLocationNumber"/>
             <option type="column" name="palletNumber" fields="palletNumber"/>
-            <option type="column" name="typeOfLoadUnit" fields="typeOfLoadUnit"/>
+            <option type="column" name="typeOfPallet" fields="typeOfPallet"/>
             <option type="column" name="userName" fields="userName"/>
             <option type="column" name="isCorrected" fields="isCorrected" width="50"/>
             <option type="column" name="waste" fields="waste" width="50"/>
@@ -120,19 +113,16 @@
             <option type="column" name="supplierNumber" fields="supplierNumber" width="100"/>
             <option type="column" name="qualityRating" fields="qualityRating" width="50"/>
             <option type="column" name="blockedForQualityControl" fields="blockedForQualityControl" width="50"/>
-            <option type="column" name="repackingNumber" fields="repackingNumber" width="100"/>
-            <option type="column" name="lastOutboundDocumentNumber" fields="lastOutboundDocumentNumber"/>
-            <option type="column" name="lastReleaseDate" fields="lastReleaseDate"/>
 
             <option type="order" column="productNumber" direction="asc"/>
 
             <option type="searchable"
-                    value="productCategory,locationNumber,locationName,productNumber,productName,productGlobalTypeOfMaterial,quantity,productUnit,reservedQuantity,availableQuantity,price,time,productionDate,expirationDate,batch,isCorrected,storageLocation,number,quantityInAdditionalUnit,givenUnit,conversion,palletNumber,typeOfLoadUnit,userName,waste,deliveryNumber,supplierNumber,value,qualityRating,blockedForQualityControl,repackingNumber,lastOutboundDocumentNumber,lastReleaseDate,createDate"/>
+                    value="productCategory,locationNumber,locationName,productNumber,productName,productGlobalTypeOfMaterial,quantity,productUnit,reservedQuantity,availableQuantity,price,time,productionDate,expirationDate,batch,isCorrected,storageLocation,number,quantityInAdditionalUnit,givenUnit,conversion,palletNumber,typeOfPallet,userName,waste,deliveryNumber,supplierNumber,value,qualityRating,blockedForQualityControl"/>
             <option type="orderable"
-                    value="productCategory,locationNumber,locationName,productNumber,productName,productGlobalTypeOfMaterial,quantity,productUnit,reservedQuantity,availableQuantity,price,time,productionDate,expirationDate,batch,isCorrected,storageLocation,number,quantityInAdditionalUnit,givenUnit,conversion,palletNumber,typeOfLoadUnit,userName,waste,deliveryNumber,supplierNumber,value,qualityRating,blockedForQualityControl,repackingNumber,lastOutboundDocumentNumber,lastReleaseDate,createDate"/>
+                    value="productCategory,locationNumber,locationName,productNumber,productName,productGlobalTypeOfMaterial,quantity,productUnit,reservedQuantity,availableQuantity,price,time,productionDate,expirationDate,batch,isCorrected,storageLocation,number,quantityInAdditionalUnit,givenUnit,conversion,palletNumber,typeOfPallet,userName,waste,deliveryNumber,supplierNumber,value,qualityRating,blockedForQualityControl"/>
 
             <option type="defaultVisibleColumns" value="locationNumber,locationName,productNumber,productName,productGlobalTypeOfMaterial,quantity,productUnit,reservedQuantity,availableQuantity,
-                            price,time,productionDate,expirationDate,batch,isCorrected,storageLocation,number,quantityInAdditionalUnit,givenUnit,conversion,palletNumber,typeOfLoadUnit,userName,waste,deliveryNumber,supplierNumber,value,qualityRating,blockedForQualityControl"/>
+                            price,time,productionDate,expirationDate,batch,isCorrected,storageLocation,number,quantityInAdditionalUnit,givenUnit,conversion,palletNumber,typeOfPallet,userName,waste,deliveryNumber,supplierNumber,value,qualityRating,blockedForQualityControl"/>
 
             <option type="correspondingView" value="materialFlowResources/resourceDetails"/>
             <option type="correspondingViewInModal" value="true"/>
@@ -153,9 +143,6 @@
             <listener event="showResourcesWithShortExpiryDate"
                       class="com.qcadoo.mes.materialFlowResources.listeners.ResourcesListListeners"
                       method="showResourcesWithShortExpiryDate"/>
-            <listener event="changeStorageLocations"
-                      class="com.qcadoo.mes.materialFlowResources.listeners.ResourcesListListeners"
-                      method="changeStorageLocations"/>
 
             <criteriaModifier class="com.qcadoo.mes.materialFlowResources.criteriaModifiers.ResourcesCriteriaModifier"
                               method="restrictToUserLocations"/>
@@ -170,6 +157,6 @@
     <hooks>
         <beforeRender
                 class="com.qcadoo.mes.materialFlowResources.hooks.ResourcesListHooks"
-                method="onBeforeRender"/>
+                method="applyFilters"/>
     </hooks>
 </view>
