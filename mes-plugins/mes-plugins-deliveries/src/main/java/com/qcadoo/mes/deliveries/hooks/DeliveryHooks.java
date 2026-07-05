@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -24,8 +24,6 @@
 package com.qcadoo.mes.deliveries.hooks;
 
 import com.qcadoo.mes.basic.ParameterService;
-import com.qcadoo.mes.basic.constants.ParameterFields;
-import com.qcadoo.mes.basic.util.CurrencyService;
 import com.qcadoo.mes.deliveries.DeliveriesService;
 import com.qcadoo.mes.deliveries.constants.DeliveredProductFields;
 import com.qcadoo.mes.deliveries.constants.DeliveryFields;
@@ -64,23 +62,16 @@ public class DeliveryHooks {
     @Autowired
     private ParameterService parameterService;
 
-    @Autowired
-    private CurrencyService currencyService;
-
     public void onCreate(final DataDefinition deliveryDD, final Entity delivery) {
         setInitialState(delivery);
         setDeliveryAddressDefaultValue(delivery);
         setDescriptionDefaultValue(delivery);
         setLocationDefaultValue(deliveryDD, delivery);
-        delivery.setField(DeliveryFields.RELEASED_FOR_PAYMENT, false);
-        delivery.setField(DeliveryFields.PAID, false);
     }
 
     public void onCopy(final DataDefinition deliveryDD, final Entity delivery) {
         setInitialState(delivery);
         clearFieldsOnCopy(delivery);
-        delivery.setField(DeliveryFields.RELEASED_FOR_PAYMENT, false);
-        delivery.setField(DeliveryFields.PAID, false);
     }
 
     public void onView(final DataDefinition deliveryDD, final Entity delivery) {
@@ -105,16 +96,9 @@ public class DeliveryHooks {
             Entity deliveryFromDB = deliveriesService.getDelivery(deliveryId);
             Entity currencyFromDB = deliveryFromDB.getBelongsToField(DeliveryFields.CURRENCY);
 
-            if (Objects.nonNull(currencyFromDB) && (currency == null || !currencyFromDB.getId().equals(currency.getId())) && !orderedProducts.isEmpty()) {
+            if (Objects.nonNull(currencyFromDB) && !currencyFromDB.getId().equals(currency.getId()) && !orderedProducts.isEmpty()) {
                 delivery.addGlobalMessage("deliveries.delivery.currencyChange.orderedProductsPriceVerificationRequired", false, false);
             }
-        }
-
-        Entity systemCurrency = parameterService.getParameter().getBelongsToField(ParameterFields.CURRENCY);
-        Entity plnCurrency = currencyService.getCurrencyByAlphabeticCode(CurrencyService.PLN);
-        if (Objects.nonNull(currency) && !systemCurrency.getId().equals(plnCurrency.getId())
-                && !currency.getId().equals(plnCurrency.getId()) && !currency.getId().equals(systemCurrency.getId())) {
-            delivery.addGlobalMessage("deliveries.delivery.currency.currencyDifferentFromSystemCurrency", false, false);
         }
     }
 
@@ -159,7 +143,7 @@ public class DeliveryHooks {
 
     public boolean validate(final DataDefinition deliveryDD, final Entity delivery) {
         if (Objects.isNull(delivery.getBelongsToField(DeliveryFields.SUPPLIER))
-                && parameterService.getParameter().getBooleanField(ParameterFieldsD.REQUIRE_SUPPLIER_IDENTIFICATION)) {
+                && parameterService.getParameter().getBooleanField(ParameterFieldsD.REQUIRE_SUPPLIER_IDENTYFICATION)) {
             delivery.addError(deliveryDD.getField(DeliveryFields.SUPPLIER), "qcadooView.validate.field.error.missing");
             return false;
         }

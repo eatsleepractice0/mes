@@ -34,9 +34,6 @@
         <string name="name" required="true">
             <validatesLength max="1024"/>
         </string>
-        <string name="additionalCode" unique="true">
-            <validatesLength max="255"/>
-        </string>
         <enum name="globalTypeOfMaterial" values="01component,02intermediate,03finalProduct,04waste,05package"/>
         <string name="ean">
             <validatesWith class="com.qcadoo.mes.basic.validators.ProductValidators"
@@ -85,11 +82,9 @@
         <belongsTo name="model" model="model"/>
         <belongsTo name="modelAssortment" model="assortment" persistent="false"/>
         <boolean name="batchEvidence" default="false"/>
-        <boolean name="expirationDateEvidence" default="false"/>
         <boolean name="machinePart"/>
         <boolean name="synchronize" copyable="false"/>
         <belongsTo name="batchNumberPattern" model="numberPattern"/>
-        <manyToMany name="qualityCards" model="qualityCard" joinField="products" lazy="true"/>
     </fields>
 
     <hooks>

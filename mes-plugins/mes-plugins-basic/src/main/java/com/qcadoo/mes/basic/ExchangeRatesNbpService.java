@@ -58,7 +58,7 @@ public interface ExchangeRatesNbpService {
         }
 
         public String getUrl() {
-            return "https://static.nbp.pl/dane/kursy/xml/" + xmlFileName + ".xml";
+            return "http://www.nbp.pl/kursy/xml/" + xmlFileName + ".xml";
         }
 
         public abstract String fieldName();

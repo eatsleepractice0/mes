@@ -33,7 +33,7 @@
 
         <ribbon>
             <template name="standardFormTemplate"/>
-            <group name="orderProduction" defaultAuthorizationRole="ROLE_ORDERS_VIEW">
+            <group name="orderProduction" defaultAuthorizationRole="ROLE_BASE_FUNCTIONALITY">
                 <bigButton name="redirectToFilteredOrderProductionList"
                            icon="genealogyIcon24.png">
                     <script>
@@ -277,6 +277,8 @@
     <hooks>
         <beforeRender class="com.qcadoo.mes.basic.hooks.CompanyDetailsHooks"
                       method="updateRibbonState"/>
+        <beforeRender class="com.qcadoo.mes.basic.hooks.CompanyDetailsHooks"
+                      method="generateCompanyNumber"/>
         <beforeRender class="com.qcadoo.mes.basic.hooks.CompanyDetailsHooks"
                       method="fillDefaultCountry"/>
         <beforeRender class="com.qcadoo.mes.basic.hooks.CompanyDetailsHooks"

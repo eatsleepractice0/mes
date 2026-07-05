@@ -36,6 +36,8 @@ import com.qcadoo.view.constants.QcadooViewConstants;
 @Service
 public class PalletNumberHelpersListHooks {
 
+
+
     public void onBeforeRender(final ViewDefinitionState view) {
         addDiscriminatorRestrictionToGrid(view);
     }

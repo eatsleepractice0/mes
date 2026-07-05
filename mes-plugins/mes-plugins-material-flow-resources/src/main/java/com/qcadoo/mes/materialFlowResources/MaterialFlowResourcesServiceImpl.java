@@ -25,7 +25,6 @@ package com.qcadoo.mes.materialFlowResources;
 
 import com.google.common.collect.Maps;
 import com.qcadoo.mes.basic.constants.BasicConstants;
-import com.qcadoo.mes.basic.constants.UnitConversionItemFieldsB;
 import com.qcadoo.mes.basic.util.CurrencyService;
 import com.qcadoo.mes.materialFlow.constants.MaterialFlowConstants;
 import com.qcadoo.mes.materialFlowResources.constants.MaterialFlowResourcesConstants;
@@ -36,8 +35,6 @@ import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.model.api.NumberService;
 import com.qcadoo.model.api.search.*;
-import com.qcadoo.model.api.units.PossibleUnitConversions;
-import com.qcadoo.model.api.units.UnitConversionService;
 import com.qcadoo.view.api.ViewDefinitionState;
 import com.qcadoo.view.api.components.FieldComponent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,9 +67,6 @@ public class MaterialFlowResourcesServiceImpl implements MaterialFlowResourcesSe
     private CurrencyService currencyService;
     @Autowired
     private NamedParameterJdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private UnitConversionService unitConversionService;
 
     @Override
     public List<Entity> getWarehouseLocationsFromDB() {
@@ -107,46 +101,37 @@ public class MaterialFlowResourcesServiceImpl implements MaterialFlowResourcesSe
     @Override
     public Map<Long, BigDecimal> getQuantitiesForProductsAndLocation(final List<Entity> products,
                                                                      final Entity location) {
-        return getQuantitiesForProductsAndLocation(products, location, false, ResourceStockDtoFields.AVAILABLE_QUANTITY);
+        return getQuantitiesForProductsAndLocation(products, location, false);
     }
 
     @Override
     public Map<Long, BigDecimal> getQuantitiesForProductsAndLocation(final List<Entity> products, final Entity location,
-                                                                     final boolean includeReservedQuantities) {
-        return getQuantitiesForProductsAndLocation(products, location, false, ResourceStockDtoFields.AVAILABLE_QUANTITY,
-                includeReservedQuantities);
+                                                                     final boolean withoutBlockedForQualityControl) {
+        return getQuantitiesForProductsAndLocation(products, location, withoutBlockedForQualityControl,
+                ResourceStockDtoFields.AVAILABLE_QUANTITY);
     }
 
     @Override
     public Map<Long, BigDecimal> getQuantitiesForProductsAndLocation(final List<Entity> products, final Entity location,
                                                                      final boolean withoutBlockedForQualityControl,
                                                                      final String fieldName) {
-        return getQuantitiesForProductsAndLocation(products, location, withoutBlockedForQualityControl, fieldName, false);
-    }
-
-    @Override
-    public Map<Long, BigDecimal> getQuantitiesForProductsAndLocation(final List<Entity> products, Entity location,
-                                                                     final boolean withoutBlockedForQualityControl,
-                                                                     final String fieldName,
-                                                                     final boolean includeReservedQuantities) {
         Map<Long, BigDecimal> quantities = Maps.newHashMap();
 
-        if (!products.isEmpty()) {
+        if (products.size() > 0) {
             List<Integer> productIds = products.stream().map(product -> product.getId().intValue()).collect(Collectors.toList());
             Integer locationId = location.getId().intValue();
 
             StringBuilder query = new StringBuilder();
 
-            query.append("SELECT resourceStockDto.product_id AS product_id, ");
-            if (withoutBlockedForQualityControl) {
-                query.append("(resourceStockDto.quantity - resourceStockDto.blockedQuantity) AS quantity, ");
-            } else {
-                query.append("resourceStockDto.quantity AS quantity, ");
-            }
-            query.append("resourceStockDto.availableQuantity AS availableQuantity ");
+            query.append("SELECT ");
+            query.append("resourceStockDto.product_id AS product_id, resourceStockDto.quantity AS quantity, resourceStockDto.availableQuantity AS availableQuantity ");
             query.append("FROM #materialFlowResources_resourceStockDto resourceStockDto ");
             query.append("WHERE resourceStockDto.product_id IN (:productIds) ");
             query.append("AND resourceStockDto.location_id = :locationId ");
+
+            if (withoutBlockedForQualityControl) {
+                query.append("AND resourceStockDto.blockedForQualityControl = false ");
+            }
 
             SearchQueryBuilder searchQueryBuilder = getResourceStockDtoDD().find(query.toString());
 
@@ -156,7 +141,7 @@ public class MaterialFlowResourcesServiceImpl implements MaterialFlowResourcesSe
             List<Entity> resourceStocks = searchQueryBuilder.list().getEntities();
 
             resourceStocks.forEach(resourceStock -> quantities.put(
-                    (long) resourceStock.getIntegerField(ResourceStockDtoFields.PRODUCT_ID),
+                    Long.valueOf(resourceStock.getIntegerField(ResourceStockDtoFields.PRODUCT_ID).intValue()),
                     ResourceStockDtoFields.AVAILABLE_QUANTITY.equals(fieldName)
                             ? resourceStock.getDecimalField(ResourceStockDtoFields.AVAILABLE_QUANTITY)
                             : resourceStock.getDecimalField(ResourceStockDtoFields.QUANTITY)));
@@ -177,15 +162,8 @@ public class MaterialFlowResourcesServiceImpl implements MaterialFlowResourcesSe
         return quantities;
     }
 
-    @Override
     public BigDecimal getBatchesQuantity(final Collection<Entity> batches, final Entity product,
                                          final Entity location) {
-        return getBatchesQuantity(batches, product, location, false);
-    }
-
-    @Override
-    public BigDecimal getBatchesQuantity(final Collection<Entity> batches, final Entity product, final Entity location,
-                                         final boolean includeReservedQuantities) {
         BigDecimal batchesQuantity = BigDecimal.ZERO;
 
         if (!batches.isEmpty()) {
@@ -233,19 +211,19 @@ public class MaterialFlowResourcesServiceImpl implements MaterialFlowResourcesSe
         currencyField.requestComponentUpdateState();
     }
 
-    public Optional<Entity> findStorageLocationForProduct(final Entity location, final Long productId) {
+    public Optional<Entity> findStorageLocationForProduct(final Entity location, final Entity product) {
         SearchQueryBuilder scb = getStorageLocationDD().find("SELECT sl FROM #materialFlowResources_storageLocation AS sl JOIN sl.products p WHERE sl.location = :locationId AND p.id = :productId");
 
         scb.setLong("locationId", location.getId());
-        scb.setLong("productId", productId);
+        scb.setLong("productId", product.getId());
 
         return Optional.ofNullable(scb.setMaxResults(1).uniqueResult());
     }
 
-    public Long getTypeOfLoadUnitByPalletNumber(final Long locationId, final String palletNumberNumber) {
+    public String getTypeOfPalletByPalletNumber(final Long locationId, final String palletNumberNumber) {
         StringBuilder query = new StringBuilder();
 
-        query.append("SELECT resource.typeofloadunit_id ");
+        query.append("SELECT resource.typeofpallet ");
         query.append("FROM materialflowresources_resource resource ");
         query.append("LEFT JOIN basic_palletnumber palletnumber ");
         query.append("ON palletnumber.id = resource.palletnumber_id ");
@@ -259,29 +237,10 @@ public class MaterialFlowResourcesServiceImpl implements MaterialFlowResourcesSe
         params.put("palletNumberNumber", palletNumberNumber);
 
         try {
-            return jdbcTemplate.queryForObject(query.toString(), params, Long.class);
+            return jdbcTemplate.queryForObject(query.toString(), params, String.class);
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
-    }
-
-    public BigDecimal getConversion(final Entity product, String unit, String additionalUnit, BigDecimal dbConversion) {
-        BigDecimal conversion = BigDecimal.ONE;
-        if (!unit.equals(additionalUnit)) {
-            PossibleUnitConversions unitConversions = unitConversionService.getPossibleConversions(unit,
-                    searchCriteriaBuilder -> searchCriteriaBuilder
-                            .add(SearchRestrictions.belongsTo(UnitConversionItemFieldsB.PRODUCT, product)));
-
-            if (unitConversions.isDefinedFor(additionalUnit)) {
-                conversion = unitConversions.asUnitToConversionMap().get(additionalUnit);
-            } else {
-                conversion = BigDecimal.ZERO;
-            }
-            if (Objects.nonNull(dbConversion) && dbConversion.compareTo(numberService.setScaleWithDefaultMathContext(conversion)) != 0) {
-                conversion = dbConversion;
-            }
-        }
-        return conversion;
     }
 
     private DataDefinition getProductDD() {

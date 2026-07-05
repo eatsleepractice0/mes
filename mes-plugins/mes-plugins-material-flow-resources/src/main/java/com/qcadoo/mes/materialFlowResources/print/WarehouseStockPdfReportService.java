@@ -10,7 +10,6 @@ import com.qcadoo.localization.api.TranslationService;
 import com.qcadoo.localization.api.utils.DateUtils;
 import com.qcadoo.mes.materialFlow.constants.LocationFields;
 import com.qcadoo.mes.materialFlowResources.constants.StocktakingFields;
-import com.qcadoo.mes.materialFlowResources.constants.WarehouseStockReportFields;
 import com.qcadoo.mes.materialFlowResources.print.helper.Resource;
 import com.qcadoo.mes.materialFlowResources.print.helper.ResourceDataProvider;
 import com.qcadoo.model.api.Entity;
@@ -20,6 +19,8 @@ import com.qcadoo.report.api.pdf.HeaderAlignment;
 import com.qcadoo.report.api.pdf.PdfDocumentService;
 import com.qcadoo.report.api.pdf.PdfHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class WarehouseStockPdfReportService extends PdfDocumentService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(WarehouseStockPdfReportService.class);
 
     @Autowired
     private TranslationService translationService;
@@ -51,14 +54,18 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
         appendDocumentData(document, entity, locale);
     }
 
-    private void appendDocumentData(final Document document, final Entity entity,
-                                    final Locale locale) throws DocumentException {
+    private void appendDocumentData(final Document document, final Entity entity, final Locale locale) throws DocumentException {
         PdfPTable dataTable = prepareDataTable(locale);
         dataTable.setHeaderRows(1);
+        List<Long> storageLocationIdsToQuery = Lists.newArrayList();
+        List<Entity> storageLocations = entity.getHasManyField(StocktakingFields.STORAGE_LOCATIONS);
+        if (!storageLocations.isEmpty()) {
+            storageLocationIdsToQuery = storageLocations.stream().map(e -> e.getId()).collect(Collectors.toList());
+        }
         String currentStorageLocation = StringUtils.EMPTY;
         List<Resource> resources = resourceDataProvider.findResourcesAndGroup(entity
-                .getBelongsToField(WarehouseStockReportFields.LOCATION).getId(), entity.getHasManyField(WarehouseStockReportFields.STORAGE_LOCATIONS).stream().map(Entity::getId).collect(Collectors.toList()), entity
-                .getStringField(WarehouseStockReportFields.CATEGORY), true);
+                .getBelongsToField(StocktakingFields.LOCATION).getId(), storageLocationIdsToQuery, entity
+                .getStringField("category"), entity.getStringField("wasteMode"), true);
         int counter = 1;
         for (Resource resource : resources) {
             dataTable.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -66,7 +73,7 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
             String storageLocation = Strings.nullToEmpty(resource.getStorageLocationNumber());
             if (!storageLocation.equals(currentStorageLocation)) {
                 currentStorageLocation = storageLocation;
-                if (counter == 1) {
+                if(counter == 1) {
                     dataTable.getDefaultCell().disableBorderSide(PdfPCell.BOTTOM);
                 }
                 dataTable.addCell(new Phrase(currentStorageLocation, FontUtils.getDejavuBold9Dark()));
@@ -79,28 +86,19 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
             dataTable.getDefaultCell().enableBorderSide(PdfPCell.TOP);
 
             dataTable.addCell(new Phrase(extractPalletNumber(resource), FontUtils.getDejavuRegular10Dark()));
-            PdfPTable product = new PdfPTable(1);
-            product.getDefaultCell().setBorderWidth(0);
-            product.getDefaultCell().setFixedHeight(10f);
-            product.addCell(new Phrase(extractProductNumber(resource), FontUtils.getDejavuRegular8Dark()));
-            product.addCell(new Phrase(extractProductName(resource), FontUtils.getDejavuRegular7Dark()));
-            dataTable.addCell(product);
-            PdfPTable batch = new PdfPTable(1);
-            batch.getDefaultCell().setBorderWidth(0);
-            batch.getDefaultCell().setFixedHeight(10f);
-            batch.addCell(new Phrase(extractBatch(resource), FontUtils.getDejavuRegular7Dark()));
-            batch.addCell(new Phrase(extractExpirationDate(resource), FontUtils.getDejavuRegular7Dark()));
-            dataTable.addCell(batch);
+            dataTable.addCell(new Phrase(extractProductNumber(resource), FontUtils.getDejavuRegular10Dark()));
             dataTable.getDefaultCell().setHorizontalAlignment(Element.ALIGN_LEFT);
-            PdfPTable unit = new PdfPTable(1);
-            unit.getDefaultCell().setBorderWidth(0);
-            unit.getDefaultCell().setFixedHeight(10f);
-            unit.addCell(new Phrase(extractUnit(resource), FontUtils.getDejavuRegular7Dark()));
-            unit.addCell(new Phrase(extractGivenUnitConversion(resource), FontUtils.getDejavuRegular7Dark()));
-            dataTable.addCell(unit);
+            dataTable.addCell(new Phrase(extractProductName(resource), FontUtils.getDejavuRegular7Dark()));
+            dataTable.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
+            dataTable.addCell(new Phrase(extractConversion(resource), FontUtils.getDejavuRegular10Dark()));
+            dataTable.getDefaultCell().setHorizontalAlignment(Element.ALIGN_LEFT);
+            dataTable.addCell(new Phrase(extractExpirationDate(resource), FontUtils.getDejavuRegular7Dark()));
+            dataTable.addCell(new Phrase(extractBatch(resource), FontUtils.getDejavuRegular7Dark()));
             dataTable.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
             dataTable.addCell(new Phrase(extractQuantity(resource), FontUtils.getDejavuRegular10Dark()));
-            counter++;
+            dataTable.addCell(new Phrase(extractQuantityInAdditionalUnit(resource), FontUtils.getDejavuRegular10Dark()));
+            dataTable.getDefaultCell().setHorizontalAlignment(Element.ALIGN_LEFT);
+            counter ++;
         }
         document.add(dataTable);
 
@@ -110,7 +108,6 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
         return StringUtils.isNoneBlank(resource.getBatch()) ? resource.getBatch() : "";
 
     }
-
     private String extractQuantity(Resource resource) {
         if (Objects.isNull(resource.getQuantity())) {
             return "";
@@ -122,33 +119,37 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
         }
     }
 
+    private String extractQuantityInAdditionalUnit(Resource resource) {
+        if (Objects.isNull(resource.getQuantityInAdditionalUnit())) {
+            return "";
+        } else if (isIntegerValue(resource.getQuantityInAdditionalUnit())) {
+            return numberService.formatWithMinimumFractionDigits(resource.getQuantityInAdditionalUnit(), 0);
+        } else {
+            return numberService.formatWithMinimumFractionDigits(
+                    numberService.setScaleWithDefaultMathContext(resource.getQuantityInAdditionalUnit(), 1), 1);
+        }
+    }
+
     private String extractExpirationDate(Resource resource) {
         return Objects.isNull(resource.getExpirationDate()) ? "" : DateUtils.toDateString(resource.getExpirationDate());
     }
 
-    private String extractUnit(Resource resource) {
-        return resource.getProductUnit();
-    }
-
-    private String extractGivenUnitConversion(Resource resource) {
-        if (!resource.getProductUnit().equals(resource.getGivenUnit())) {
-            return resource.getGivenUnit() + " / " + numberService.formatWithMinimumFractionDigits(
-                    resource.getConversion(), 0);
-        } else {
-            return "";
-        }
+    private String extractConversion(Resource resource) {
+        return Objects.isNull(resource.getConversion()) ? "" : numberService.formatWithMinimumFractionDigits(
+                resource.getConversion(), 0);
     }
 
     private String extractProductName(Resource resource) {
-        return resource.getProductName();
-    }
-
-    private String extractProductNumber(Resource resource) {
-        return resource.getProductNumber();
+        return StringUtils.isNoneBlank(resource.getProductName()) ? resource.getProductName().substring(0,
+                Math.min(12, resource.getProductName().length())) : "";
     }
 
     private String extractPalletNumber(Resource resource) {
         return StringUtils.isNoneBlank(resource.getPalletNumberNumber()) ? resource.getPalletNumberNumber() : "";
+    }
+
+    private String extractProductNumber(Resource resource) {
+        return resource.getProductNumber();
     }
 
     private PdfPTable prepareDataTable(Locale locale) {
@@ -165,30 +166,41 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
         alignments.put(translationService.translate("materialFlowResources.warehouseStockReport.report.data.pallet", locale),
                 HeaderAlignment.RIGHT);
 
-        String product = translationService.translate("materialFlowResources.warehouseStockReport.report.data.productNumber", locale) + "\n"
-                + translationService.translate("materialFlowResources.warehouseStockReport.report.data.productName", locale);
+        header.add(translationService.translate("materialFlowResources.warehouseStockReport.report.data.productNumber",
+                locale));
+        alignments.put(translationService.translate(
+                "materialFlowResources.warehouseStockReport.report.data.productNumber", locale), HeaderAlignment.RIGHT);
 
-        header.add(product);
-        alignments.put(product, HeaderAlignment.LEFT);
+        header.add(translationService.translate("materialFlowResources.warehouseStockReport.report.data.productName", locale));
+        alignments.put(
+                translationService.translate("materialFlowResources.warehouseStockReport.report.data.productName", locale),
+                HeaderAlignment.LEFT);
 
-        String batch = translationService.translate("materialFlowResources.stocktaking.report.data.batch", locale) + "\n"
-                + translationService.translate("materialFlowResources.warehouseStockReport.report.data.expirationDate", locale);
+        header.add(translationService.translate("materialFlowResources.warehouseStockReport.report.data.conversion", locale));
+        alignments.put(translationService.translate("materialFlowResources.warehouseStockReport.report.data.conversion", locale),
+                HeaderAlignment.RIGHT);
 
-        header.add(batch);
-        alignments.put(batch, HeaderAlignment.LEFT);
+        header.add(translationService.translate("materialFlowResources.warehouseStockReport.report.data.expirationDate", locale));
+        alignments.put(
+                translationService.translate("materialFlowResources.warehouseStockReport.report.data.expirationDate", locale),
+                HeaderAlignment.LEFT);
 
-        String unit = translationService.translate("materialFlowResources.warehouseStockReport.report.data.unit", locale) + "\n"
-                + translationService.translate("materialFlowResources.warehouseStockReport.report.data.givenUnitConversion", locale);
-        header.add(unit);
-        alignments.put(unit, HeaderAlignment.LEFT);
+        header.add(translationService.translate("materialFlowResources.stocktaking.report.data.batch", locale));
+        alignments.put(translationService.translate("materialFlowResources.stocktaking.report.data.batch", locale),
+                HeaderAlignment.LEFT);
 
         header.add(translationService.translate("materialFlowResources.warehouseStockReport.report.data.quantity", locale));
         alignments.put(translationService.translate("materialFlowResources.warehouseStockReport.report.data.quantity", locale),
                 HeaderAlignment.RIGHT);
+        header.add(translationService.translate("materialFlowResources.warehouseStockReport.report.data.additionalQuantity",
+                locale));
+        alignments
+                .put(translationService.translate("materialFlowResources.warehouseStockReport.report.data.additionalQuantity",
+                        locale), HeaderAlignment.RIGHT);
 
-        int[] columnWidths = {90, 70, 230, 130, 85, 80};
+        int[] columnWidths = { 81, 70, 100, 98, 65, 72, 90, 72, 72 };
 
-        return pdfHelper.createTableWithHeader(6, header, false, columnWidths, alignments);
+        return pdfHelper.createTableWithHeader(9, header, false, columnWidths, alignments);
     }
 
     private void appendDocumentContextTable(final Document document, final Entity entity, final Locale locale)
@@ -204,8 +216,8 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
 
         dynamicHeaderTable.setSpacingBefore(5);
 
-        Map<String, Object> firstColumn = new LinkedHashMap<>();
-        Map<String, Object> secondColumn = new LinkedHashMap<>();
+        Map<String, Object> firstColumn = new LinkedHashMap<String, Object>();
+        Map<String, Object> secondColumn = new LinkedHashMap<String, Object>();
 
         firstColumn.put("materialFlowResources.warehouseStockReport.report.date",
                 DateUtils.toDateString(entity.getDateField("warehouseStockDate")));
@@ -219,9 +231,11 @@ public class WarehouseStockPdfReportService extends PdfDocumentService {
                 translationService.translate(
                         "materialFlowResources.warehouseStockReport.storageLocationMode.value."
                                 + entity.getStringField("storageLocationMode"), locale));
+        secondColumn.put("materialFlowResources.warehouseStockReport.report.wasteMode", translationService.translate(
+                "materialFlowResources.warehouseStockReport.wasteMode.value." + entity.getStringField("wasteMode"), locale));
 
-        int maxSize = pdfHelper.getMaxSizeOfColumnsRows(Lists.newArrayList(firstColumn.values().size(),
-                secondColumn.values().size()));
+        int maxSize = pdfHelper.getMaxSizeOfColumnsRows(Lists.newArrayList(Integer.valueOf(firstColumn.values().size()),
+                Integer.valueOf(secondColumn.values().size())));
 
         for (int i = 0; i < maxSize; i++) {
             firstColumnHeaderTable = pdfHelper.addDynamicHeaderTableCellOneRow(firstColumnHeaderTable, firstColumn, locale);

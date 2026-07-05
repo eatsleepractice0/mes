@@ -49,8 +49,6 @@ public final class PositionFields {
 
     public static final String RESOURCE_NUMBER = "resourceNumber";
 
-    public static final String TRANSFER_RESOURCE_NUMBER = "transferResourceNumber";
-
     public static final String SELLING_PRICE = "sellingPrice";
 
     public static final String STORAGE_LOCATION = "storageLocation";
@@ -67,7 +65,7 @@ public final class PositionFields {
 
     public static final String PALLET_NUMBER = "palletNumber";
 
-    public static final String TYPE_OF_LOAD_UNIT = "typeOfLoadUnit";
+    public static final String TYPE_OF_PALLET = "typeOfPallet";
 
     public static final String RESERVATIONS = "reservations";
 
@@ -83,6 +81,7 @@ public final class PositionFields {
 
     public static final String PICKING_WORKER = "pickingWorker";
 
-    public static final String DELIVERY_NUMBER = "deliveryNumber";
+    public static final String REST_AFTER_SHIFT_DISPOSITION = "restAfterShiftDisposition";
 
+    public static final String REST_AFTER_SHIFT_DISPOSITION_ADD_UNIT = "restAfterShiftDispositionAddUnit";
 }

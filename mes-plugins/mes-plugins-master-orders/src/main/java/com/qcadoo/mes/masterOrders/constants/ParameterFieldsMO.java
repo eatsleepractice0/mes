@@ -33,16 +33,10 @@ public final class ParameterFieldsMO {
 
     public static final String SAME_ORDER_NUMBER = "sameOrderNumber";
 
+    public static final String MASTER_ORDER_DEFINITIONS = "masterOrderDefinitions";
+
     public static final String ADDITIONAL_IMAGE = "additionalImage";
 
     public static final String COMPLETE_MASTER_ORDER_AFTER_ORDERING_POSITIONS = "completeMasterOrderAfterOrderingPositions";
-
-    public static final String ALLOW_MASTER_ORDER_DEADLINE_CHANGE = "allowMasterOrderDeadlineChange";
-
-    public static final String PRICE_LIST_ATTRIBUTE_1 = "priceListAttribute1";
-
-    public static final String PRICE_LIST_ATTRIBUTE_2 = "priceListAttribute2";
-
-    public static final String MASTER_ORDER_RELEASE_LOCATION = "masterOrderReleaseLocation";
 
 }

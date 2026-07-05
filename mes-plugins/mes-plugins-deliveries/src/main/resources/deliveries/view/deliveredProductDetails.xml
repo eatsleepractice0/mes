@@ -305,19 +305,12 @@
 
                         <listener event="onSelectedEntityChange"
                                   class="com.qcadoo.mes.deliveries.listeners.DeliveredProductDetailsListeners"
-                                  method="fillTypeOfLoadUnitField"/>
+                                  method="fillPalletTypeField"/>
                     </component>
                 </layoutElement>
                 <layoutElement column="1" row="3" width="2">
-                    <component type="lookup" name="typeOfLoadUnit" field="#{form}.typeOfLoadUnit"
-                               reference="typeOfLoadUnit">
-
-                        <option type="searchable" value="name"/>
-                        <option type="orderable" value="name"/>
-
-                        <option type="expression" value="#name"/>
-                        <option type="fieldCode" value="name"/>
-                    </component>
+                    <component type="select" name="palletType" field="#{form}.palletType"
+                               reference="palletType"/>
                 </layoutElement>
                 <layoutElement column="1" row="4" width="2">
                     <component type="lookup" name="batch" field="#{form}.batch"

@@ -25,8 +25,6 @@ package com.qcadoo.mes.materialFlowResources.listeners;
 
 import com.google.common.base.Optional;
 import com.qcadoo.commons.functional.Either;
-import com.qcadoo.mes.basic.constants.PalletNumberFields;
-import com.qcadoo.mes.materialFlowResources.MaterialFlowResourcesService;
 import com.qcadoo.mes.materialFlowResources.constants.MaterialFlowResourcesConstants;
 import com.qcadoo.mes.materialFlowResources.constants.ResourceFields;
 import com.qcadoo.mes.materialFlowResources.constants.StorageLocationFields;
@@ -66,7 +64,8 @@ public class ResourceDetailsListeners {
     private ResourceCorrectionService resourceCorrectionService;
 
     @Autowired
-    private MaterialFlowResourcesService materialFlowResourcesService;
+    private ResourceDetailsHooks resourceDetailsHooks;
+
 
     public void createResourceCorrection(final ViewDefinitionState view, final ComponentState state,
                                          final String[] args) {
@@ -194,21 +193,8 @@ public class ResourceDetailsListeners {
         return isValid;
     }
 
-    public void fillTypeOfLoadUnitField(final ViewDefinitionState view, final ComponentState state, final String[] args) {
-        LookupComponent locationLookup = (LookupComponent) view.getComponentByReference(ResourceFields.LOCATION);
-        LookupComponent palletNumberLookup = (LookupComponent) view.getComponentByReference(ResourceFields.PALLET_NUMBER);
-        LookupComponent typeOfLoadUnitLookup = (LookupComponent) view.getComponentByReference(ResourceFields.TYPE_OF_LOAD_UNIT);
-
-        Entity location = locationLookup.getEntity();
-        Entity palletNumber = palletNumberLookup.getEntity();
-        Long typeOfLoadUnit = null;
-
-        if (Objects.nonNull(palletNumber)) {
-            typeOfLoadUnit = materialFlowResourcesService.getTypeOfLoadUnitByPalletNumber(location.getId(), palletNumber.getStringField(PalletNumberFields.NUMBER));
-        }
-
-        typeOfLoadUnitLookup.setFieldValue(typeOfLoadUnit);
-        typeOfLoadUnitLookup.requestComponentUpdateState();
+    public void fillTypeOfPalletField(final ViewDefinitionState view, final ComponentState state, final String[] args) {
+        resourceDetailsHooks.fillTypeOfPalletField(view);
     }
 
     private Entity getResourceStockDto(final Entity resourceFromDb) {

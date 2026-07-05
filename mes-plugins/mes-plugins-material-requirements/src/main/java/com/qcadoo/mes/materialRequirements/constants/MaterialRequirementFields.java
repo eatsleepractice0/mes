@@ -52,16 +52,7 @@ public final class MaterialRequirementFields {
     public static final String INCLUDE_START_DATE_ORDER = "includeStartDateOrder";
 
     public static final String LOCATION = "location";
-    public static final String STOCK_LEVEL_LOCATION = "stockLevelLocation";
 
     public static final String MATERIAL_REQUIREMENT_PRODUCTS = "materialRequirementProducts";
-
-    public static final String SHOW_REPLACEMENTS = "showReplacements";
-
-    public static final String WMS = "wms";
-
-    public static final String STATE_IN_WMS = "stateInWMS";
-
-    public static final String IS_SET_FIELDS_FROM_PARAMETER = "isSetFieldsFromParameter";
 
 }

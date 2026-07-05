@@ -46,18 +46,12 @@
         <string name="productNumber"/>
         <string name="productName"/>
         <string name="additionalFinalProducts"/>
-        <string name="assortmentName"/>
-        <string name="productSize"/>
-        <string name="technologyGroupNumber"/>
-        <string name="finalProductNumber"/>
-        <string name="orderCode"/>
 
         <string name="unit"/>
         <string name="unitForAdditionalUnit"/>
         <string name="technologyNumber"/>
         <string name="productionLineNumber"/>
         <string name="masterOrderNumber"/>
-        <string name="masterOrderName"/>
         <string name="divisionName"/>
         <string name="divisionNumber"/>
         <decimal name="amountOfProductProduced"/>
@@ -69,11 +63,6 @@
         <string name="company"/>
         <boolean name="hasPacks"/>
         <string name="salesPlanNumber"/>
-        <integer name="priority"/>
-        <boolean name="dateChange"/>
-        <datetime name="createDate"/>
-        <date name="clientDate"/>
-        <decimal name="performanceNorm"/>
 
     </fields>
     <hooks>

@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -61,14 +61,14 @@ public class ResourceModelHooks {
             resource.setField(ResourceFields.NUMBER, number);
         }
 
-        setTypeOfLoadUnit(resource);
+        setTypeOfPallet(resource);
     }
 
-    private void setTypeOfLoadUnit(final Entity resource) {
+    private void setTypeOfPallet(final Entity resource) {
         Entity palletNumber = resource.getBelongsToField(ResourceFields.PALLET_NUMBER);
 
         if (Objects.isNull(palletNumber)) {
-            resource.setField(ResourceFields.TYPE_OF_LOAD_UNIT, null);
+            resource.setField(ResourceFields.TYPE_OF_PALLET, null);
         }
     }
 
@@ -87,7 +87,6 @@ public class ResourceModelHooks {
         if (Objects.isNull(resource.getDecimalField(ResourceFields.AVAILABLE_QUANTITY))) {
             resource.setField(ResourceFields.AVAILABLE_QUANTITY, resource.getDecimalField(ResourceFields.QUANTITY));
         }
-        resource.setField(ResourceFields.CREATE_DATE, new Date());
     }
 
 }

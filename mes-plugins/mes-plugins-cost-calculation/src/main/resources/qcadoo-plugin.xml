@@ -225,6 +225,8 @@
                            joinField="offer"/>
         </model:model-field>
 
+
+
         <model:model-hook plugin="orders" model="order">
             <model:onCreate
                     class="com.qcadoo.mes.costCalculation.hooks.OrderHooksCC"

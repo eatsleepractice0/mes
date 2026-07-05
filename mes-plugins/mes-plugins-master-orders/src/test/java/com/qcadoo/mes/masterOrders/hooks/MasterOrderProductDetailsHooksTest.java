@@ -48,8 +48,7 @@ public class MasterOrderProductDetailsHooksTest {
 
     @Mock private FormComponent masterOrderProductForm;
 
-    @Mock private FieldComponent cumulatedOrderQuantityUnitField, masterOrderQuantityUnitField, producedOrderQuantityUnitField, leftToRelease, leftToReleaseUnit, comments, masterOrderPositionStatus,
-            quantityRemainingToOrderUnit, quantityTakenFromWarehouseUnit, quantityRemainingToOrder, quantityTakenFromWarehouse, releaseQuantityUnit, releaseQuantity, quantityToReleaseUnit, quantityToRelease;
+    @Mock private FieldComponent cumulatedOrderQuantityUnitField, masterOrderQuantityUnitField, producedOrderQuantityUnitField, leftToRelease, leftToReleaseUnit, comments, masterOrderPositionStatus, quantityRemainingToOrderUnit, quantityTakenFromWarehouseUnit, quantityRemainingToOrder, quantityTakenFromWarehouse;
 
     @Mock private LookupComponent productField;
 
@@ -73,10 +72,6 @@ public class MasterOrderProductDetailsHooksTest {
         given(view.getComponentByReference("quantityTakenFromWarehouse")).willReturn(quantityTakenFromWarehouse);
         given(view.getComponentByReference("leftToReleaseUnit")).willReturn(leftToReleaseUnit);
         given(view.getComponentByReference("leftToRelease")).willReturn(leftToRelease);
-        given(view.getComponentByReference("releaseQuantityUnit")).willReturn(releaseQuantityUnit);
-        given(view.getComponentByReference("releaseQuantity")).willReturn(releaseQuantity);
-        given(view.getComponentByReference("quantityToReleaseUnit")).willReturn(quantityToReleaseUnit);
-        given(view.getComponentByReference("quantityToRelease")).willReturn(quantityToRelease);
         given(view.getComponentByReference("comments")).willReturn(comments);
         given(view.getComponentByReference("masterOrderPositionStatus")).willReturn(masterOrderPositionStatus);
         given(masterOrderProductForm.getPersistedEntityWithIncludedFormValues()).willReturn(masterOrderProduct);

@@ -57,7 +57,7 @@ public class StorageLocationsListListeners {
                 String number = storageLocation.getStringField(StorageLocationFields.NUMBER);
 
                 try {
-                    Barcode128.getRawText(number, false);
+                    String text = Barcode128.getRawText(number, false);
                 } catch (RuntimeException exception) {
                     invalidNumbers.add(number);
                 }

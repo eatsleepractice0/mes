@@ -27,7 +27,6 @@ import com.google.common.collect.Lists;
 import com.qcadoo.mes.technologies.constants.AssignedToOperation;
 import com.qcadoo.mes.technologies.constants.OperationFields;
 import com.qcadoo.model.api.Entity;
-import com.qcadoo.security.api.SecurityService;
 import com.qcadoo.view.api.ComponentState;
 import com.qcadoo.view.api.ViewDefinitionState;
 import com.qcadoo.view.api.components.CheckBoxComponent;
@@ -44,7 +43,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -68,16 +66,11 @@ public class OperationDetailsHooks {
 
     public static final String L_PRODUCT = "product";
 
-    @Autowired
-    private SecurityService securityService;
-
     public final void onBeforeRender(final ViewDefinitionState view) {
         disableWorkstationsTabFieldsIfOperationIsNotSaved(view);
         setWorkstationsCriteriaModifiers(view);
         hideProductInOutComponents(view);
         disableCreateOperationOutput(view);
-        ComponentState skillsTab = view.getComponentByReference("skillsTab");
-        skillsTab.setVisible(securityService.hasCurrentUserRole("ROLE_SKILLS"));
     }
 
     private void disableCreateOperationOutput(final ViewDefinitionState view) {

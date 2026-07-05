@@ -23,7 +23,7 @@
     ***************************************************************************
 
 -->
-<view defaultAuthorizationRole="ROLE_SALE" name="masterOrdersList" modelName="masterOrderDto"
+<view defaultAuthorizationRole="ROLE_PLANNING" name="masterOrdersList" modelName="masterOrderDto"
       menuAccessible="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://schema.qcadoo.org/view"
       xsi:schemaLocation="http://schema.qcadoo.org/view http://schema.qcadoo.org/view.xsd">
@@ -96,19 +96,6 @@
 						]]>
                     </script>
                 </smallButton>
-            </group>
-            <group name="deadline">
-                <bigButton name="setDeadline" icon="generateIcon24.png">
-                    <script>
-                        <![CDATA[
-                            this.addOnChangeListener({
-                                onClick: function() {
-                                    #{grid}.performEvent('setDeadline', []);
-                                }
-                            });
-                        ]]>
-                    </script>
-                </bigButton>
             </group>
             <group name="import">
                 <bigButton name="openMasterOrdersImportPage" state="enabled" icon="xlsIcon24.png"
@@ -220,8 +207,6 @@
             <option type="fullscreen" value="true"/>
             <option type="multiselect" value="true"/>
             <listener event="changeState" class="com.qcadoo.mes.masterOrders.listeners.MasterOrdersListListeners" method="changeState"/>
-            <listener event="setDeadline" method="setDeadline"
-                      class="com.qcadoo.mes.masterOrders.listeners.MasterOrdersListListeners"/>
             <listener event="openMasterOrdersImportPage"
                       class="com.qcadoo.mes.masterOrders.listeners.MasterOrderPositionsListListeners"
                       method="openMasterOrdersImportPage"/>

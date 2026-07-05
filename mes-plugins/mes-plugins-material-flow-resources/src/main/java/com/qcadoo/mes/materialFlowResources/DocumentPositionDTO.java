@@ -25,6 +25,12 @@ public class DocumentPositionDTO {
     @JsonDeserialize(using = BigDecimalDeserializer.class)
     private BigDecimal quantity;
 
+    @JsonDeserialize(using = BigDecimalDeserializer.class)
+    private BigDecimal restAfterShiftDisposition;
+
+    @JsonDeserialize(using = BigDecimalDeserializer.class)
+    private BigDecimal restAfterShiftDispositionAddUnit;
+
     @SearchAttribute(searchType = SearchAttribute.SEARCH_TYPE.EXACT_MATCH)
     private String unit;
 
@@ -56,7 +62,7 @@ public class DocumentPositionDTO {
     private String pickingWorker;
 
     @SearchAttribute(searchType = SearchAttribute.SEARCH_TYPE.EXACT_MATCH)
-    private String typeOfLoadUnit;
+    private String typeOfPallet;
 
     private String storageLocation;
 
@@ -188,12 +194,12 @@ public class DocumentPositionDTO {
         this.palletNumber = palletNumber;
     }
 
-    public String getTypeOfLoadUnit() {
-        return typeOfLoadUnit;
+    public String getTypeOfPallet() {
+        return typeOfPallet;
     }
 
-    public void setTypeOfLoadUnit(String typeOfLoadUnit) {
-        this.typeOfLoadUnit = typeOfLoadUnit;
+    public void setTypeOfPallet(String typeOfPallet) {
+        this.typeOfPallet = typeOfPallet;
     }
 
     public String getStorageLocation() {
@@ -274,7 +280,7 @@ public class DocumentPositionDTO {
         hash = 67 * hash + Objects.hashCode(this.expirationDate);
         hash = 67 * hash + Objects.hashCode(this.productionDate);
         hash = 67 * hash + Objects.hashCode(this.palletNumber);
-        hash = 67 * hash + Objects.hashCode(this.typeOfLoadUnit);
+        hash = 67 * hash + Objects.hashCode(this.typeOfPallet);
         hash = 67 * hash + Objects.hashCode(this.storageLocation);
         hash = 67 * hash + Objects.hashCode(this.price);
         hash = 67 * hash + Objects.hashCode(this.batch);
@@ -284,6 +290,8 @@ public class DocumentPositionDTO {
         hash = 67 * hash + Objects.hashCode(this.pickingDate);
         hash = 67 * hash + Objects.hashCode(this.pickingWorker);
         hash = 67 * hash + Objects.hashCode(this.sellingPrice);
+        hash = 67 * hash + Objects.hashCode(this.restAfterShiftDisposition);
+        hash = 67 * hash + Objects.hashCode(this.restAfterShiftDispositionAddUnit);
         return hash;
     }
 
@@ -329,7 +337,7 @@ public class DocumentPositionDTO {
         if (!Objects.equals(this.palletNumber, other.palletNumber)) {
             return false;
         }
-        if (!Objects.equals(this.typeOfLoadUnit, other.typeOfLoadUnit)) {
+        if (!Objects.equals(this.typeOfPallet, other.typeOfPallet)) {
             return false;
         }
         if (!Objects.equals(this.storageLocation, other.storageLocation)) {
@@ -356,6 +364,12 @@ public class DocumentPositionDTO {
         if (!Objects.equals(this.sellingPrice, other.sellingPrice)) {
             return false;
         }
+        if (!Objects.equals(this.restAfterShiftDisposition, other.restAfterShiftDisposition)) {
+            return false;
+        }
+        if (!Objects.equals(this.restAfterShiftDispositionAddUnit, other.restAfterShiftDispositionAddUnit)) {
+            return false;
+        }
         return true;
     }
 
@@ -364,9 +378,11 @@ public class DocumentPositionDTO {
         return "DocumentPositionDTO{" + "id=" + id + ", document=" + document + ", product=" + product
                 + ", quantity=" + quantity + ", unit=" + unit + ", givenquantity=" + givenquantity
                 + ", givenunit=" + givenunit + ", conversion=" + conversion + ", expirationDate=" + expirationDate
-                + ", productionDate=" + productionDate + ", pallet=" + palletNumber + ", type_of_loadUnit=" + typeOfLoadUnit
+                + ", productionDate=" + productionDate + ", pallet=" + palletNumber + ", type_of_pallet=" + typeOfPallet
                 + ", storage_location=" + storageLocation + ", price=" + price + ", batch=" + batch + ", resource=" + resource
                 + ", resourceNumber=" + resourceNumber + ", pickingDate=" + pickingDate + ", pickingWorker=" + pickingWorker
+                + ", restAfterShiftDisposition=" + restAfterShiftDisposition
+                + ", restAfterShiftDispositionAddUnit=" + restAfterShiftDispositionAddUnit
                 + '}';
     }
 
@@ -400,5 +416,21 @@ public class DocumentPositionDTO {
 
     public void setPickingWorker(String pickingWorker) {
         this.pickingWorker = pickingWorker;
+    }
+
+    public BigDecimal getRestAfterShiftDisposition() {
+        return restAfterShiftDisposition;
+    }
+
+    public void setRestAfterShiftDisposition(BigDecimal restAfterShiftDisposition) {
+        this.restAfterShiftDisposition = restAfterShiftDisposition;
+    }
+
+    public BigDecimal getRestAfterShiftDispositionAddUnit() {
+        return restAfterShiftDispositionAddUnit;
+    }
+
+    public void setRestAfterShiftDispositionAddUnit(BigDecimal restAfterShiftDispositionAddUnit) {
+        this.restAfterShiftDispositionAddUnit = restAfterShiftDispositionAddUnit;
     }
 }

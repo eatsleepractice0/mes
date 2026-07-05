@@ -23,7 +23,6 @@
  */
 package com.qcadoo.mes.basic.print;
 
-import com.google.common.collect.Lists;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.Barcode128;
 import com.lowagie.text.pdf.PdfContentByte;
@@ -87,7 +86,6 @@ public class PalletNumberReportPdf extends ReportPdfView {
         Entity palletNumber = palletNumbersService.getPalletNumber(palletNumberId);
 
         if (Objects.nonNull(palletNumber)) {
-            palletNumbersService.setPalletNumbersPrinted(Lists.newArrayList(palletNumber));
             String number = palletNumber.getStringField(PalletNumberFields.NUMBER);
 
             addPalletNumber(document, writer, number);

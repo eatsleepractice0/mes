@@ -17,13 +17,11 @@ import com.qcadoo.mes.orders.states.constants.OrderState;
 import com.qcadoo.mes.orders.states.constants.OrderStateStringValues;
 import com.qcadoo.mes.technologies.constants.TechnologyFields;
 import com.qcadoo.model.api.*;
-import com.qcadoo.model.api.search.SearchCriteriaBuilder;
 import com.qcadoo.model.api.search.SearchOrders;
 import com.qcadoo.model.api.search.SearchQueryBuilder;
 import com.qcadoo.model.api.search.SearchRestrictions;
 import com.qcadoo.model.constants.DictionaryItemFields;
 import com.qcadoo.plugin.api.PluginUtils;
-import com.qcadoo.view.api.ComponentState;
 import com.qcadoo.view.api.utils.NumberGeneratorService;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -42,6 +40,8 @@ import static com.qcadoo.mes.orders.constants.ParameterFieldsO.DEADLINE_FOR_ORDE
 public class OrdersFromMOProductsGenerationService {
 
     private static final String L_CREATE_COLLECTIVE_ORDERS = "createCollectiveOrders";
+
+    private static final String L_MASTER_ORDER_POSITION_STATUS = "masterOrderPositionStatus";
 
     private static final List<String> L_TECHNOLOGY_FIELD_NAMES = Lists.newArrayList("registerQuantityInProduct",
             "registerQuantityOutProduct", "registerProductionTime", "typeOfProductionRecording");
@@ -214,6 +214,7 @@ public class OrdersFromMOProductsGenerationService {
         }
 
         BigDecimal stockQuantity = BigDecimal.ZERO;
+
 
         BigDecimal quantityRemainingToOrder = masterOrderProduct.getQuantityRemainingToOrder();
 
@@ -428,7 +429,7 @@ public class OrdersFromMOProductsGenerationService {
             order.setField(OrderFields.COMPANY, masterOrder.getBelongsToField(MasterOrderFields.COMPANY));
             order.setField(OrderFields.ADDRESS, masterOrder.getBelongsToField(MasterOrderFields.ADDRESS));
             order.setField(OrderFieldsMO.MASTER_ORDER, masterOrder);
-            order.setField(OrderFields.VENDOR_INFO, masterOrderProduct.getMasterOrderProduct().getStringField(MasterOrderProductFields.VENDOR_INFO));
+            order.setField(OrderFieldsMO.VENDOR_INFO, masterOrderProduct.getMasterOrderProduct().getStringField(MasterOrderProductFields.VENDOR_INFO));
 
             fillDates(parameter, order, masterOrderDeadline, masterOrderStartDate, masterOrderFinishDate);
         }
@@ -608,12 +609,12 @@ public class OrdersFromMOProductsGenerationService {
 
         StringBuilder descriptionBuilder = new StringBuilder();
 
-        if (copyDescription && masterOrder != null && StringUtils.isNoneBlank(masterOrder.getStringField(MasterOrderFields.DESCRIPTION))) {
+        if (copyDescription && StringUtils.isNoneBlank(masterOrder.getStringField(MasterOrderFields.DESCRIPTION))) {
             descriptionBuilder.append(masterOrder.getStringField(MasterOrderFields.DESCRIPTION));
         }
 
         if (copyNotesFromMasterOrderPosition
-                && masterOrderProduct != null && StringUtils.isNoneBlank(masterOrderProduct.getStringField(MasterOrderProductFields.COMMENTS))) {
+                && StringUtils.isNoneBlank(masterOrderProduct.getStringField(MasterOrderProductFields.COMMENTS))) {
             if (StringUtils.isNoneBlank(descriptionBuilder.toString())) {
                 descriptionBuilder.append("\n");
             }
@@ -649,7 +650,7 @@ public class OrdersFromMOProductsGenerationService {
     }
 
     private void setMasterOrderPositionStatus(final Entity masterOrderProduct) {
-        Entity item = dictionaryService.getItemEntityByTechnicalCode(MasterOrderProductFields.MASTER_ORDER_POSITION_STATUS,
+        Entity item = dictionaryService.getItemEntityByTechnicalCode(L_MASTER_ORDER_POSITION_STATUS,
                 MasterOrderPositionStatus.ORDERED.getStringValue());
 
         if (Objects.nonNull(item)) {
@@ -687,20 +688,6 @@ public class OrdersFromMOProductsGenerationService {
 
     private Object getDefaultValueForProductionCounting(final Entity technology, final String fieldName) {
         return technology.getField(fieldName);
-    }
-
-    public Entity getMasterOrderProduct(final Entity masterOrder, final Entity product, String vendorInfo) {
-        SearchCriteriaBuilder searchCriteriaBuilder = dataDefinitionService
-                .get(MasterOrdersConstants.PLUGIN_IDENTIFIER, MasterOrdersConstants.MODEL_MASTER_ORDER_PRODUCT).find()
-                .add(SearchRestrictions.belongsTo(MasterOrderProductFields.MASTER_ORDER, masterOrder))
-                .add(SearchRestrictions.belongsTo(MasterOrderProductFields.PRODUCT, product));
-
-        if (vendorInfo != null) {
-            searchCriteriaBuilder.add(SearchRestrictions.eq(MasterOrderProductFields.VENDOR_INFO, vendorInfo));
-        } else {
-            searchCriteriaBuilder.add(SearchRestrictions.isNull(MasterOrderProductFields.VENDOR_INFO));
-        }
-        return searchCriteriaBuilder.setMaxResults(1).uniqueResult();
     }
 
     private DataDefinition getOrderDD() {

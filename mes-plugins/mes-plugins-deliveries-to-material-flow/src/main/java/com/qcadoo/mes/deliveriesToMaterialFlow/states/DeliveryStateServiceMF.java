@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -32,7 +32,9 @@ import com.qcadoo.mes.basic.constants.UnitConversionItemFieldsB;
 import com.qcadoo.mes.basic.util.CurrencyService;
 import com.qcadoo.mes.deliveries.constants.*;
 import com.qcadoo.mes.deliveriesToMaterialFlow.constants.DocumentFieldsDTMF;
+import com.qcadoo.mes.materialFlow.constants.LocationFields;
 import com.qcadoo.mes.materialFlowResources.constants.DocumentFields;
+import com.qcadoo.mes.materialFlowResources.constants.LocationFieldsMFR;
 import com.qcadoo.mes.materialFlowResources.constants.PositionAttributeValueFields;
 import com.qcadoo.mes.materialFlowResources.service.DocumentBuilder;
 import com.qcadoo.mes.materialFlowResources.service.DocumentManagementService;
@@ -107,8 +109,6 @@ public class DeliveryStateServiceMF {
         }
 
         Entity currency = getCurrency(delivery);
-        Entity plnCurrency = currencyService.getCurrencyByAlphabeticCode(CurrencyService.PLN);
-        Entity systemCurrency = currencyFromParameter();
 
         List<Entity> deliveredProducts = delivery.getHasManyField(DeliveryFields.DELIVERED_PRODUCTS);
 
@@ -141,14 +141,12 @@ public class DeliveryStateServiceMF {
 
                 documentBuilder.addPosition(product, positionQuantity,
                         numberService.setScaleWithDefaultMathContext(givenQuantity), additionalUnit, conversion,
-                        getPricePerUnit(currency, plnCurrency, systemCurrency,
-                                deliveredProduct.getDecimalField(DeliveredProductFields.PRICE_PER_UNIT)),
+                        currencyService.getConvertedValue(deliveredProduct.getDecimalField(DeliveredProductFields.PRICE_PER_UNIT),
+                                currency),
                         getBatch(deliveredProduct), getProductionDate(deliveredProduct), getExpirationDate(deliveredProduct),
                         null, getStorageLocation(deliveredProduct), getPalletNumber(deliveredProduct),
-                        getTypeOfLoadUnit(deliveredProduct), isWaste(deliveredProduct),
-                        deliveredProduct.getStringField(L_QUALITY_RATING), attributes,
-                        deliveredProduct.getDateField(DeliveredProductFields.PICKING_DATE),
-                        deliveredProduct.getBelongsToField(DeliveredProductFields.PICKING_WORKER));
+                        getTypeOfPallet(deliveredProduct), isWaste(deliveredProduct),
+                        deliveredProduct.getStringField(L_QUALITY_RATING), attributes);
             }
         }
 
@@ -161,21 +159,6 @@ public class DeliveryStateServiceMF {
                 delivery.addGlobalError(error.getMessage(), error.getAutoClose());
             }
         }
-    }
-
-    private BigDecimal getPricePerUnit(final Entity deliveryCurrency, final Entity plnCurrency,
-                                       final Entity systemCurrency, final BigDecimal price) {
-        BigDecimal pricePerUnit = null;
-
-        if (Objects.isNull(systemCurrency) || deliveryCurrency.getId().equals(systemCurrency.getId())) {
-            pricePerUnit = price;
-        } else if (deliveryCurrency.getId().equals(plnCurrency.getId()) && !deliveryCurrency.getId().equals(systemCurrency.getId())) {
-            pricePerUnit = currencyService.getRevertedValue(price, systemCurrency);
-        } else if (systemCurrency.getId().equals(plnCurrency.getId()) && !deliveryCurrency.getId().equals(systemCurrency.getId())) {
-            pricePerUnit = currencyService.getConvertedValue(price, deliveryCurrency);
-        }
-
-        return pricePerUnit;
     }
 
     private List<Entity> prepareAttributes(final Entity deliveredProduct) {
@@ -202,6 +185,57 @@ public class DeliveryStateServiceMF {
         return attributes;
     }
 
+    public void validateRequiredParameters(final StateChangeContext stateChangeContext) {
+        final Entity delivery = stateChangeContext.getOwner();
+
+        Entity location = getLocation(delivery);
+
+        if (Objects.isNull(location)) {
+            return;
+        }
+
+        boolean isBatchRequired = isRequired(location, LocationFieldsMFR.REQUIRE_BATCH);
+        boolean isProductionDateRequired = isRequired(location, LocationFieldsMFR.REQUIRE_PRODUCTION_DATE);
+        boolean isExpirationDateRequired = isRequired(location, LocationFieldsMFR.REQUIRE_EXPIRATION_DATE);
+        boolean isPriceRequired = isRequired(location, LocationFieldsMFR.REQUIRE_PRICE);
+
+        if (isBatchRequired || isExpirationDateRequired || isPriceRequired || isProductionDateRequired) {
+            List<Entity> deliveredProducts = delivery.getHasManyField(DeliveryFields.DELIVERED_PRODUCTS);
+            List<String> missingBatch = Lists.newArrayList();
+            List<String> missingProductionDate = Lists.newArrayList();
+            List<String> missingExpirationDate = Lists.newArrayList();
+            List<String> missingPrice = Lists.newArrayList();
+
+            for (Entity deliveredProduct : deliveredProducts) {
+                String productName = getProductName(deliveredProduct);
+
+                if (isBatchRequired && Objects.isNull(getBatch(deliveredProduct))) {
+                    missingBatch.add(productName);
+                }
+                if (isProductionDateRequired && Objects.isNull(getProductionDate(deliveredProduct))) {
+                    missingProductionDate.add(productName);
+                }
+                if (isExpirationDateRequired && Objects.isNull(getExpirationDate(deliveredProduct))) {
+                    missingExpirationDate.add(productName);
+                }
+                if (isPriceRequired && Objects.isNull(currencyService.getConvertedValue(
+                        deliveredProduct.getDecimalField(DeliveredProductFields.PRICE_PER_UNIT), getCurrency(delivery)))) {
+                    missingPrice.add(productName);
+                }
+            }
+
+            String locationName = getLocationName(location);
+            addErrorMessage(stateChangeContext, missingBatch, locationName,
+                    "deliveriesToMaterialFlow.deliveryStateValidator.missing.batch");
+            addErrorMessage(stateChangeContext, missingProductionDate, locationName,
+                    "deliveriesToMaterialFlow.deliveryStateValidator.missing.productionDate");
+            addErrorMessage(stateChangeContext, missingExpirationDate, locationName,
+                    "deliveriesToMaterialFlow.deliveryStateValidator.missing.expirationDate");
+            addErrorMessage(stateChangeContext, missingPrice, locationName,
+                    "deliveriesToMaterialFlow.deliveryStateValidator.missing.price");
+        }
+    }
+
     public void validateReceivedPackages(final StateChangeContext stateChangeContext) {
         final Entity delivery = stateChangeContext.getOwner();
 
@@ -212,6 +246,17 @@ public class DeliveryStateServiceMF {
         if (!deliveredPackages.isEmpty()) {
             if (Objects.isNull(packagingLocation)) {
                 stateChangeContext.addValidationError("deliveriesToMaterialFlow.deliveryStateValidator.error.packagingLocationNotSet");
+            }
+        }
+    }
+
+    private void addErrorMessage(final StateChangeContext stateChangeContext, final List<String> message,
+                                 final String locationName, final String translationKey) {
+        if (message.size() != 0) {
+            if (message.toString().length() < 255) {
+                stateChangeContext.addValidationError(translationKey, false, locationName, message.toString());
+            } else {
+                stateChangeContext.addValidationError(translationKey + "Short", false, locationName);
             }
         }
     }
@@ -314,8 +359,8 @@ public class DeliveryStateServiceMF {
         return deliveredProduct.getDateField(DeliveredProductFields.EXPIRATION_DATE);
     }
 
-    private Entity getTypeOfLoadUnit(final Entity deliveredProduct) {
-        return deliveredProduct.getBelongsToField(DeliveredProductFields.TYPE_OF_LOAD_UNIT);
+    private String getTypeOfPallet(final Entity deliveredProduct) {
+        return deliveredProduct.getStringField(DeliveredProductFields.PALLET_TYPE);
     }
 
     private Entity getPalletNumber(final Entity deliveredProduct) {
@@ -332,6 +377,18 @@ public class DeliveryStateServiceMF {
 
     private Date getProductionDate(final Entity deliveredProduct) {
         return deliveredProduct.getDateField(DeliveredProductFields.PRODUCTION_DATE);
+    }
+
+    private boolean isRequired(final Entity location, final String fieldName) {
+        return location.getBooleanField(fieldName);
+    }
+
+    private String getProductName(final Entity deliveredProduct) {
+        return getProduct(deliveredProduct).getStringField(ProductFields.NAME);
+    }
+
+    private String getLocationName(final Entity location) {
+        return location.getStringField(LocationFields.NAME);
     }
 
     private DataDefinition getDeliveredProductAttributeValDD() {

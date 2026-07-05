@@ -24,7 +24,7 @@
     ***************************************************************************
 
 -->
-<view defaultAuthorizationRole="ROLE_DELIVERIES" name="deliveriesList" modelName="deliveryDto" menuAccessible="true"
+<view defaultAuthorizationRole="ROLE_DELIVERIES" name="deliveriesList" modelName="delivery" menuAccessible="true"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schema.qcadoo.org/view"
       xsi:schemaLocation="http://schema.qcadoo.org/view http://schema.qcadoo.org/view.xsd">
 
@@ -169,15 +169,9 @@
                         <![CDATA[
 							this.addOnChangeListener({
 								onClick: function() {
-                                    if (this.state == "draft" || this.state == "prepare" || this.state == "correct") {
-                                        if (window.confirm("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery.confirm)}")) {
-                                            #{grid}.performEvent('changeState', ['05approved']);
-                                        };
-									} else if (this.state == "accept") {
-                                        if (window.confirm("#{translate(deliveries.deliveryDetails.window.ribbon.status.acceptDelivery.confirm)}")) {
-                                            #{grid}.performEvent('changeState', ['07accepted']);
-                                        };
-									}
+									if (window.confirm("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery.confirm)}")) {
+										#{grid}.performEvent('changeState', ['05approved']);
+									};
 								}
 							});
 						]]>
@@ -198,32 +192,6 @@
                     </script>
                 </smallButton>
             </group>
-            <group name="email">
-                <bigButton name="sendEmail" state="enabled" icon="sendIcon24.png">
-                    <script>
-                        <![CDATA[
-                            this.addOnChangeListener({
-                                onClick: function() {
-                                    #{grid}.performEvent('sendEmail', []);
-                                }
-                            });
-                        ]]>
-                    </script>
-                </bigButton>
-            </group>
-            <group name="payment" defaultAuthorizationRole="ROLE_RELEASE_FOR_PAYMENT">
-                <bigButton name="releaseForPayment" state="enabled" icon="acceptIcon24.png">
-                    <script>
-                        <![CDATA[
-                            this.addOnChangeListener({
-                                onClick: function() {
-                                    #{grid}.performEvent('releaseForPayment', []);
-                                }
-                            });
-                        ]]>
-                    </script>
-                </bigButton>
-            </group>
         </ribbon>
 
         <windowTab name="mainTab" reference="mainTab">
@@ -234,9 +202,7 @@
                     <![CDATA[
 						var copyBtn = #{window}.getRibbonItem("actions.copy");
 						var deleteBtn = #{window}.getRibbonItem("actions.delete");
-						var sendEmailBtn = #{window}.getRibbonItem("email.sendEmail");
-						var releaseForPaymentBtn = #{window}.getRibbonItem("payment.releaseForPayment");
-
+						
 						var acceptBtn = #{window}.getRibbonItem("status.accept");
 						var declineDeliveryBtn = #{window}.getRibbonItem("status.declineDelivery");
 						var approveDeliveryBtn = #{window}.getRibbonItem("status.approveDelivery");
@@ -251,14 +217,9 @@
 									declineDeliveryBtn.disable();
 									approveDeliveryBtn.disable();
 									correctDeliveryBtn.disable();
-									sendEmailBtn.disable();
-									if(releaseForPaymentBtn){
-									    releaseForPaymentBtn.disable();
-									}
 								} else {
 									var noDifferentStates = true;
 									var wms = false;
-
                                     for (var i = 0; i < selectedEntitiesArray.length; i++) {
                                         if(selectedEntitiesArray[i].fields.wms == true
                                             && selectedEntitiesArray[i].fields.stateInWMS != '04realized'){
@@ -275,22 +236,7 @@
 												break;
 											}
 										}
-									}
-									if(releaseForPaymentBtn){
-									    var releaseForPayment = true;
-									    for (var i = 0; i < selectedEntitiesArray.length; i++) {
-                                            if(selectedEntitiesArray[i].fields.state != '07accepted'
-                                                && selectedEntitiesArray[i].fields.state != '06received'){
-                                                releaseForPayment = false;
-                                                break;
-                                            }
-                                        }
-                                        if(releaseForPayment){
-                                            releaseForPaymentBtn.enable();
-                                        } else {
-                                            releaseForPaymentBtn.disable();
-                                        }
-									}
+									} 
 									if (selectedEntitiesArray.length == 1 || noDifferentStates) {
 										var state = selectedEntitiesArray[0].fields.state;
 										
@@ -305,10 +251,7 @@
 											declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 											declineDeliveryBtn.setIcon('deleteIcon16.png');
 											approveDeliveryBtn.enable();
-											approveDeliveryBtn.state = "draft";
-											approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery)}");
 											correctDeliveryBtn.disable();
-											sendEmailBtn.disable();
 										} else if (state == "02prepared") {
 											deleteBtn.disable();
 											acceptBtn.disable();
@@ -320,10 +263,7 @@
 											declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 											declineDeliveryBtn.setIcon('deleteIcon16.png');
 											approveDeliveryBtn.enable();
-                                            approveDeliveryBtn.state = "prepare";
-											approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery)}");
 											correctDeliveryBtn.enable();
-											sendEmailBtn.enable();
 										} else if (state == "03duringCorrection") {
 											deleteBtn.disable();
 											acceptBtn.disable();
@@ -335,10 +275,7 @@
 											declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 											declineDeliveryBtn.setIcon('deleteIcon16.png');
 											approveDeliveryBtn.enable();
-                                            approveDeliveryBtn.state = "correct";
-											approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.approveDelivery)}");
 											correctDeliveryBtn.disable();
-											sendEmailBtn.disable();
 										} else if (state == "05approved"){
 											deleteBtn.disable();
 											acceptBtn.enable();
@@ -349,35 +286,20 @@
 											declineDeliveryBtn.state = "decline";
 											declineDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.declineDelivery)}");
 											declineDeliveryBtn.setIcon('deleteIcon16.png');
-								            approveDeliveryBtn.enable();
-                                            approveDeliveryBtn.state = "accept";
-											approveDeliveryBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.acceptDelivery)}");
+											approveDeliveryBtn.disable();
 											correctDeliveryBtn.enable();
-											sendEmailBtn.disable();
 										} else if (state == "06received"){
 											deleteBtn.disable();
 											acceptBtn.disable();
 											declineDeliveryBtn.disable();
 											approveDeliveryBtn.disable();
 											correctDeliveryBtn.disable();
-											sendEmailBtn.disable();
-										} else if (state == "07accepted"){
-											deleteBtn.disable();
-											acceptBtn.enable();
-											acceptBtn.state = "receive";
-											acceptBtn.setLabel("#{translate(deliveries.deliveryDetails.window.ribbon.status.receiveDelivery)}");
-											acceptBtn.setIcon('acceptIcon16.png');
-											declineDeliveryBtn.disable();
-											approveDeliveryBtn.disable();
-											correctDeliveryBtn.disable();
-											sendEmailBtn.disable();
 										} else {
 											deleteBtn.enable();
 											acceptBtn.disable();
 											declineDeliveryBtn.disable();
 											approveDeliveryBtn.disable();
 											correctDeliveryBtn.disable();
-											sendEmailBtn.disable();
 										}
 									} else {
 										deleteBtn.disable("#{translate(deliveries.deliveriesList.ribbon.message.deliveriesWithDifferentStatesSelected)}");
@@ -385,7 +307,6 @@
 										declineDeliveryBtn.disable("#{translate(deliveries.deliveriesList.ribbon.message.deliveriesWithDifferentStatesSelected)}");
 										approveDeliveryBtn.disable("#{translate(deliveries.deliveriesList.ribbon.message.deliveriesWithDifferentStatesSelected)}");
 										correctDeliveryBtn.disable("#{translate(deliveries.deliveriesList.ribbon.message.deliveriesWithDifferentStatesSelected)}");
-										sendEmailBtn.disable("#{translate(deliveries.deliveriesList.ribbon.message.deliveriesWithDifferentStatesSelected)}");
 									}
 									copyBtn.enable();
 									if(wms){
@@ -405,29 +326,19 @@
 
                 <option type="column" name="number" fields="number" link="true" width="50"/>
                 <option type="column" name="name" fields="name" link="true" width="100"/>
-                <option type="column" name="supplierName" fields="supplierName"/>
-                <option type="column" name="contractorCategory" fields="contractorCategory" width="70"/>
+                <option type="column" name="supplierName" fields="supplier"
+                        expression="#supplier['name']"/>
+                <option type="column" name="contractorCategory" fields="supplier"
+                        expression="#supplier['contractorCategory']" width="70"/>
                 <option type="column" name="deliveryDate" fields="deliveryDate" width="100"/>
                 <option type="column" name="state" fields="state"/>
                 <option type="column" name="createDate" fields="createDate" width="100"/>
-                <option type="column" name="locationNumber" fields="locationNumber"/>
-                <option type="column" name="dateOfSendingEmail" fields="dateOfSendingEmail" width="100"/>
-                <option type="column" name="releasedForPayment" fields="releasedForPayment" width="30"/>
-                <option type="column" name="paymentID" fields="paymentID" width="50"/>
-                <option type="column" name="paid" fields="paid"
-                        classesCondition="rowObject['releasedForPayment'] == true"
-                        classesNames="rowObject['paidCellColor']"/>
-                <option type="column" name="paidCellColor" fields="paidCellColor" hidden="true"/>
-                <option type="column" name="paymentDate" fields="paymentDate"/>
-                <option type="column" name="repaymentTime" fields="repaymentTime"/>
-                <option type="column" name="relatedDeliveryNumber" fields="relatedDeliveryNumber" width="50"/>
-                <option type="column" name="createUser" fields="createUser"/>
-                <option type="column" name="description" fields="description"/>
+
 
                 <option type="order" column="number" direction="desc"/>
 
-                <option type="searchable" value="name,number,supplierName,deliveryDate,contractorCategory,state,createDate,locationNumber,dateOfSendingEmail,releasedForPayment,paymentID,relatedDeliveryNumber,createUser,paid,paymentDate,repaymentTime,description"/>
-                <option type="orderable" value="name,number,supplierName,deliveryDate,contractorCategory,state,createDate,locationNumber,dateOfSendingEmail,releasedForPayment,paymentID,relatedDeliveryNumber,createUser,paid,paymentDate,repaymentTime,description"/>
+                <option type="searchable" value="name,number,supplierName,deliveryDate,contractorCategory,state,createDate"/>
+                <option type="orderable" value="name,number,supplierName,deliveryDate,contractorCategory,state,createDate"/>
 
                 <option type="correspondingView" value="deliveries/deliveryDetails"/>
                 <option type="correspondingComponent" value="form"/>
@@ -435,7 +346,7 @@
                 <option type="fullscreen" value="true"/>
                 <option type="multiselect" value="true"/>
 
-                <criteriaModifier class="com.qcadoo.mes.deliveries.criteriaModifiers.DeliveryCriteriaModifiers"
+                <criteriaModifier class="com.qcadoo.mes.deliveries.criteriaModifiers.DeliveriesCriteriaModifier"
                                   method="restrictToUserLocations"/>
 
                 <option type="hasPredefinedFilters" value="true"/>
@@ -456,12 +367,6 @@
                 <listener event="changeState"
                           class="com.qcadoo.mes.deliveries.states.client.DeliveryStateChangeViewClient"
                           method="changeState"/>
-                <listener event="sendEmail"
-                          class="com.qcadoo.mes.deliveries.listeners.DeliveriesListListeners"
-                          method="sendEmail"/>
-                <listener event="releaseForPayment"
-                          class="com.qcadoo.mes.deliveries.listeners.DeliveriesListListeners"
-                          method="releaseForPayment"/>
             </component>
         </windowTab>
 
@@ -473,10 +378,6 @@
         <beforeRender
                 class="com.qcadoo.mes.deliveries.hooks.DeliveriesListHooks"
                 method="fillGridWithRelatedDeliveries"/>
-
-        <beforeRender
-                class="com.qcadoo.mes.deliveries.hooks.DeliveriesListHooks"
-                method="disableSendEmailButton"/>
 
         <beforeRender class="com.qcadoo.mes.deliveries.hooks.DeliveryDetailsHooks"
                       method="processRoles"/>

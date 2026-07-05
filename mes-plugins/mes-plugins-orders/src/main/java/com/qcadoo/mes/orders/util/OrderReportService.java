@@ -30,8 +30,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import com.qcadoo.mes.basic.ParameterService;
-import com.qcadoo.mes.basic.constants.ParameterFields;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -59,17 +57,14 @@ public class OrderReportService {
     @Autowired
     private PdfHelper pdfHelper;
 
-    @Autowired
-    private ParameterService parameterService;
-
     public Entity printForOrder(final ComponentState state, final String plugin, final String entityName,
             final Map<String, Object> entityFieldsMap, final OrderValidator orderValidator) {
         if (!(state instanceof GridComponent)) {
-            throw new IllegalStateException("method available only for grid");
+            throw new IllegalStateException("method avalible only for grid");
         }
 
         GridComponent gridState = (GridComponent) state;
-        Set<Entity> ordersEntities = new HashSet<>();
+        Set<Entity> ordersEntities = new HashSet<Entity>();
         if (gridState.getSelectedEntitiesIds().isEmpty()) {
             state.addMessage("qcadooView.message.noRecordSelected", MessageType.FAILURE);
             return null;
@@ -112,19 +107,11 @@ public class OrderReportService {
 
         entity.setField("name", generateOrderPrintName(orders, locale));
         entity.setField("generated", true);
-        entity.setField("wms", false);
         entity.setField("worker", pdfHelper.getDocumentAuthor());
         entity.setField("date", new Date());
         if (data.getField("orders") != null) {
             entity.setField("orders", Lists.newArrayList(orders));
         }
-
-        Entity parameter = parameterService.getParameter();
-        entity.setField(ParameterFields.MRP_ALGORITHM, parameter.getStringField(ParameterFields.MRP_ALGORITHM));
-        entity.setField("includeWarehouse", parameter.getBooleanField(ParameterFields.MR_INCLUDE_WAREHOUSE));
-        entity.setField("showCurrentStockLevel", parameter.getBooleanField(ParameterFields.MR_SHOW_CURRENT_STOCK_LEVEL));
-        entity.setField("includeStartDateOrder", parameter.getBooleanField(ParameterFields.MR_INCLUDE_START_DATE_ORDER));
-        entity.setField("showReplacements", parameter.getBooleanField(ParameterFields.MR_SHOW_REPLACEMENTS));
 
         if (entityFieldsMap != null) {
             for (Map.Entry<String, Object> entityFieldsMapEntry : entityFieldsMap.entrySet()) {

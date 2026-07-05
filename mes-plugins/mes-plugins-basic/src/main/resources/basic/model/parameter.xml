@@ -30,7 +30,7 @@
 
     <fields>
         <belongsTo name="country" plugin="basic" model="country"/>
-        <belongsTo name="currency" plugin="basic" model="currency" required="true"/>
+        <belongsTo name="currency" plugin="basic" model="currency"/>
         <dictionary name="unit" dictionary="units"/>
         <string name="additionalTextInFooter">
             <validatesLength max="128"/>
@@ -54,17 +54,11 @@
                  joinField="parameter" cascade="delete" copyable="true"/>
         <file name="logo"/>
         <integer name="numberOfficeLicenses" required="true" default="1">
-            <validatesRange from="0"/>
-        </integer>
-        <integer name="numberAPSLicenses" required="true" default="0">
-            <validatesRange from="0"/>
-        </integer>
-        <integer name="numberWMSMobileLicenses" required="true" default="0">
-            <validatesRange from="0"/>
+            <validatesRange from="0" exclusively="true"/>
         </integer>
 
         <integer name="numberVisibleOrdersTasksOnDashboard" required="true" default="50">
-            <validatesRange from="1" to="500"/>
+            <validatesRange from="1" to="500" exclusively="false"/>
         </integer>
 
         <integer name="numberTerminalLicenses" required="true" default="1">
@@ -76,43 +70,6 @@
         <enum name="tasksSelectionBy" required="true"
               values="01orderDate,02taskDate,03taskStartDate"
               default="01orderDate"/>
-
-        <enum name="showOnProductionGuide" required="true"
-              values="01orderNumber,02orderNumberAndName"
-              default="01orderNumber"/>
-
-        <string name="emailHost">
-            <validatesLength max="255"/>
-        </string>
-
-        <integer name="emailPort">
-            <validatesRange from="0" exclusively="true"/>
-        </integer>
-
-        <string name="emailUsername">
-            <validatesLength max="255"/>
-        </string>
-
-        <string name="emailPassword">
-            <validatesLength max="255"/>
-        </string>
-
-        <string name="emailForConfirmation">
-            <validatesLength max="255"/>
-        </string>
-
-        <enum name="mrpAlgorithm" values="00onlyMaterials,01onlyComponents,02allProductsIn"
-              default="01onlyComponents" required="true"/>
-
-        <enum name="producedQuantityBasedOn" values="01acceptedRecords,02reportedRecords"
-              default="01acceptedRecords" required="true"/>
-
-        <boolean name="mrShowReplacements" default="false"/>
-        <boolean name="mrIncludeWarehouse" default="false"/>
-        <boolean name="mrShowCurrentStockLevel" default="false"/>
-        <boolean name="mrIncludeStartDateOrder" default="false"/>
-        <boolean name="showProductionTrackingStaff" default="false"/>
-        <boolean name="generateAdditionalCodeInEachProduct" default="false"/>
     </fields>
 
     <hooks>

@@ -24,7 +24,7 @@
     ***************************************************************************
 
 -->
-<view defaultAuthorizationRole="ROLE_SCHEDULES" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<view defaultAuthorizationRole="ROLE_PLANNING" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://schema.qcadoo.org/view"
       xsi:schemaLocation="http://schema.qcadoo.org/view http://schema.qcadoo.org/view.xsd"
       name="scheduleDetails" modelName="schedule">
@@ -46,31 +46,44 @@
                                 var deleteButton = #{window}.getRibbonItem("actions.delete");
 								var isSaved = (#{form}.getValue().content && #{form}.getValue().content.entityId);
 								var state = #{state}.getValue().content.value;
-								var token = #{token}.getValue().content.value;
+								var tabItemNames = ["setAPlan.getOperations", "setAPlan.assignOperationsToWorkstations", "setAPlan.assignWorkersToOperations"];
+								var generatePlan = #{scheduleTab}.getRibbonItem("setAPlan.generatePlan");
 								var saveActions = ["actions.save","actions.saveNew","actions.saveBack"];
 
-                                if (isSaved && state == "01draft" && !token) {
+                                if (isSaved && state == "01draft") {
                                     approveSchedule.enable();
+                                    generatePlan.enable("#{translate(orders.scheduleDetails.window.scheduleTab.ribbon.setAPlan.generatePlan.message)}");
                                 } else {
                                     approveSchedule.disable();
+                                    generatePlan.disable("#{translate(orders.scheduleDetails.window.scheduleTab.ribbon.setAPlan.generatePlan.message)}");
                                 }
 
-                                if (isSaved && state != "03rejected" && !token) {
+                                if (isSaved && state != "03rejected") {
                                     rejectSchedule.enable();
                                 } else {
                                     rejectSchedule.disable();
                                 }
 
+                                for (var elementKey in tabItemNames) {
+									var ribbonItem = #{scheduleTab}.getRibbonItem(tabItemNames[elementKey]);
+
+									if (isSaved && state == "01draft") {
+										ribbonItem.enable();
+									} else {
+										ribbonItem.disable();
+									}
+								}
+
    								for(var elementKey in saveActions){
    									var ribbonItem = #{window}.getRibbonItem(saveActions[elementKey]);
 
-   									if(state != "01draft" || token){
+   									if(state != "01draft"){
    										ribbonItem.disable();
  									} else {
 										ribbonItem.enable();
  									}
      							}
-     							if(state != "01draft" || token){
+     							if(state != "01draft"){
      							    this.setEnabled(false, true);
      							    #{orders}.setEditable(false);
      							    #{positions}.setEditable(false);
@@ -79,7 +92,7 @@
                                     #{orders}.setEditable(true);
      							    #{positions}.setEditable(true);
                                 }
-                                if (state == "02approved" || !isSaved || token) {
+                                if (state == "02approved" || !isSaved) {
                                     deleteButton.disable();
                                 } else {
                                     deleteButton.enable();
@@ -89,16 +102,14 @@
 					]]>
                 </script>
                 <component type="gridLayout" name="gridLayout" columns="3"
-                           rows="8">
+                           rows="11">
                     <layoutElement column="1" row="1">
                         <component type="input" name="name" field="name"
                                    reference="name"/>
                         <component type="checkbox" name="isSetFieldsFromParameter"
                                    defaultVisible="false" field="isSetFieldsFromParameter"
-                                   reference="isSetFieldsFromParameter"/>
-                        <component type="input" name="token"
-                                   defaultVisible="false" field="token"
-                                   reference="token"/>
+                                   reference="isSetFieldsFromParameter">
+                        </component>
                     </layoutElement>
                     <layoutElement column="1" row="2">
                         <component type="input" name="number" reference="number"
@@ -113,32 +124,49 @@
                         </component>
                     </layoutElement>
                     <layoutElement column="1" row="4">
+                        <component type="select" name="sortOrder" field="sortOrder"
+                                   reference="sortOrder">
+                        </component>
+                    </layoutElement>
+                    <layoutElement column="1" row="5">
+                        <component type="select" name="workstationAssignCriterion" field="workstationAssignCriterion"
+                                   reference="workstationAssignCriterion">
+                        </component>
+                    </layoutElement>
+                    <layoutElement column="1" row="6">
                         <component type="select" name="workerAssignCriterion" field="workerAssignCriterion"
                                    reference="workerAssignCriterion">
                         </component>
                     </layoutElement>
-                    <layoutElement column="1" row="5">
+                    <layoutElement column="1" row="7">
                         <component type="checkbox" name="onlyWorkstationsOfLineFromOrder"
                                    reference="onlyWorkstationsOfLineFromOrder"
                                    field="onlyWorkstationsOfLineFromOrder"
                                    hasDescription="true">
                         </component>
                     </layoutElement>
-                    <layoutElement column="1" row="6">
+                    <layoutElement column="1" row="8">
+                        <component type="checkbox" name="scheduleForBuffer"
+                                   reference="scheduleForBuffer"
+                                   field="scheduleForBuffer"
+                                   hasDescription="true">
+                        </component>
+                    </layoutElement>
+                    <layoutElement column="1" row="9">
                         <component type="checkbox" name="includeTpz"
                                    reference="includeTpz"
                                    field="includeTpz"
                                    hasDescription="true">
                         </component>
                     </layoutElement>
-                    <layoutElement column="1" row="7">
+                    <layoutElement column="1" row="10">
                         <component type="checkbox" name="additionalTimeExtendsOperation"
                                    reference="additionalTimeExtendsOperation"
                                    field="additionalTimeExtendsOperation"
                                    hasDescription="true">
                         </component>
                     </layoutElement>
-                    <layoutElement column="1" row="8">
+                    <layoutElement column="1" row="11">
                         <component type="calendar" name="approveTime" reference="approveTime"
                                    field="approveTime" defaultEnabled="never">
                             <option type="withTimePicker" value="true"/>
@@ -229,13 +257,6 @@
                 <option type="multiselect" value="true"/>
                 <option type="deletable" value="true"/>
                 <option type="creatable" value="true"/>
-
-                <listener event="addExistingEntity"
-                          method="informAboutGetOperations"
-                          class="com.qcadoo.mes.orders.listeners.ScheduleDetailsListeners"/>
-                <listener event="remove"
-                          method="informAboutGetOperations"
-                          class="com.qcadoo.mes.orders.listeners.ScheduleDetailsListeners"/>
 
             </component>
         </windowTab>

@@ -47,13 +47,12 @@
         <decimal name="price"/>
         <decimal name="value"/>
         <datetime name="time"/>
-        <datetime name="createDate"/>
         <date name="productionDate"/>
         <date name="expirationDate"/>
         <string name="batchNumber"/>
         <string name="storageLocationNumber"/>
         <string name="palletNumber"/>
-        <string name="typeOfLoadUnit"/>
+        <string name="typeOfPallet"/>
         <string name="qualityRating"/>
         <string name="userName"/>
         <boolean name="isCorrected"/>
@@ -65,9 +64,6 @@
         <boolean name="blockedForQualityControl"/>
         <decimal name="colorResourcesAfterDeadline"/>
         <string name="expirationDateCellColor"/>
-        <string name="repackingNumber"/>
-        <string name="lastOutboundDocumentNumber"/>
-        <datetime name="lastReleaseDate"/>
     </fields>
 
     <masterModel plugin="materialFlowResources" model="resource"/>

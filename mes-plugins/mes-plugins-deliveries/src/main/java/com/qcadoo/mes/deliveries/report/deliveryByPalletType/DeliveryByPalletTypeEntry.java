@@ -6,17 +6,18 @@ public class DeliveryByPalletTypeEntry {
 
     private Long id;
     private String number;
-    private String typeOfLoadUnit;
+    private String palletType;
     private Date date;
     private Integer numberOfPallets;
 
     public DeliveryByPalletTypeEntry() {
+
     }
 
-    public DeliveryByPalletTypeEntry(Long id, String number, String typeOfLoadUnit, Date date, Integer numberOfPallets) {
+    public DeliveryByPalletTypeEntry(Long id, String number, String palletType, Date date, Integer numberOfPallets) {
         this.id = id;
         this.number = number;
-        this.typeOfLoadUnit = typeOfLoadUnit;
+        this.palletType = palletType;
         this.date = date;
         this.numberOfPallets = numberOfPallets;
     }
@@ -37,12 +38,12 @@ public class DeliveryByPalletTypeEntry {
         this.number = number;
     }
 
-    public String getTypeOfLoadUnit() {
-        return typeOfLoadUnit;
+    public String getPalletType() {
+        return palletType;
     }
 
-    public void setTypeOfLoadUnit(String typeOfLoadUnit) {
-        this.typeOfLoadUnit = typeOfLoadUnit;
+    public void setPalletType(String palletType) {
+        this.palletType = palletType;
     }
 
     public Date getDate() {

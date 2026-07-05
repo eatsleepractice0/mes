@@ -137,6 +137,4 @@ public interface PalletNumbersService {
      */
     void deleteTemporaryPalletNumberHelpersTrigger();
 
-    void setPalletNumbersPrinted(List<Entity> palletNumbers);
-
 }

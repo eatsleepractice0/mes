@@ -41,7 +41,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import static com.qcadoo.mes.masterOrders.constants.ParameterFieldsMO.ALLOW_MASTER_ORDER_DEADLINE_CHANGE;
 import static com.qcadoo.mes.orders.constants.ParameterFieldsO.DEADLINE_FOR_ORDER_BASED_ON_DELIVERY_DATE;
 import static com.qcadoo.model.api.search.SearchRestrictions.*;
 
@@ -55,7 +54,9 @@ public class MasterOrderValidators {
     private MasterOrderOrdersDataProvider masterOrderOrdersDataProvider;
 
     public boolean onValidate(final DataDefinition masterOrderDD, final Entity masterOrder) {
-        boolean isValid = checkIfDatesAreOk(masterOrderDD, masterOrder);
+        boolean isValid = true;
+
+        isValid = checkIfDatesAreOk(masterOrderDD, masterOrder) && isValid;
         isValid = checkIfCanChangeMasterOrderPrefixField(masterOrder) && isValid;
 
         return isValid;
@@ -127,10 +128,8 @@ public class MasterOrderValidators {
     public boolean checkIfCanChangeDeadline(final DataDefinition masterOrderDD, final FieldDefinition fieldDefinition,
                                             final Entity masterOrder, final Object fieldOldValue,
                                             final Object fieldNewValue) {
-        Entity parameter = parameterService.getParameter();
-
-        if (parameter.getBooleanField(ALLOW_MASTER_ORDER_DEADLINE_CHANGE) || isNewlyCreated(masterOrder) || areSame(fieldOldValue, fieldNewValue)
-                || doesNotHaveAnyPendingOrder(masterOrder) || checkIfCanSetDeadline(masterOrder, fieldNewValue)) {
+        if (isNewlyCreated(masterOrder) || areSame(fieldOldValue, fieldNewValue) || doesNotHaveAnyPendingOrder(masterOrder)
+                || checkIfCanSetDeadline(masterOrder, fieldNewValue)) {
             return true;
         }
 

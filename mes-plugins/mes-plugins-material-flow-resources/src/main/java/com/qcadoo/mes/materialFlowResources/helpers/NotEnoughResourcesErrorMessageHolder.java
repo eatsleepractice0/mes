@@ -21,7 +21,6 @@ public class NotEnoughResourcesErrorMessageHolder {
     private final TranslationService translationService;
 
     private final String BATCH_MESSAGE = "materialFlow.error.position.quantity.notEnoughResources.batch";
-    private final String RESOURCE_MESSAGE = "materialFlow.error.position.quantity.notEnoughResources.resource";
     private final String MISSING_MESSAGE = "materialFlow.error.position.quantity.notEnoughResources.missing";
 
     NotEnoughResourcesErrorMessageHolder(NumberService numberService, TranslationService translationService) {
@@ -30,7 +29,7 @@ public class NotEnoughResourcesErrorMessageHolder {
         this.translationService = translationService;
     }
 
-    public void addErrorEntry(Entity product, Entity batch, BigDecimal quantity, String resourceNumber) {
+    public void addErrorEntry(Entity product, Entity batch, BigDecimal quantity) {
         StringBuilder message = new StringBuilder();
         message.append("(");
         message.append(product.getStringField(ProductFields.NUMBER));
@@ -40,10 +39,6 @@ public class NotEnoughResourcesErrorMessageHolder {
             message.append(", ");
             String batchNumber = batch.getStringField(BatchFields.NUMBER);
             message.append(translationService.translate(BATCH_MESSAGE, LocaleContextHolder.getLocale(), batchNumber));
-        }
-        if(Objects.nonNull(resourceNumber)) {
-            message.append(", ");
-            message.append(translationService.translate(RESOURCE_MESSAGE, LocaleContextHolder.getLocale(), resourceNumber));
         }
         message.append(". ");
         message.append(translationService.translate(MISSING_MESSAGE, LocaleContextHolder.getLocale()));

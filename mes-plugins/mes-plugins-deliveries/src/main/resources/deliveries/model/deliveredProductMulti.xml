@@ -33,7 +33,7 @@
 		<hasMany name="deliveredProductMultiPositions" model="deliveredProductMultiPosition"
 				 joinField="deliveredProductMulti" cascade="delete"/>
 		<belongsTo name="palletNumber" model="palletNumber" plugin="basic"/>
-		<belongsTo name="typeOfLoadUnit" plugin="basic" model="typeOfLoadUnit" />
+		<dictionary name="palletType" dictionary="typeOfPallet"/>
 		<belongsTo name="storageLocation" model="storageLocation" plugin="materialFlowResources"/>
 	</fields>
 

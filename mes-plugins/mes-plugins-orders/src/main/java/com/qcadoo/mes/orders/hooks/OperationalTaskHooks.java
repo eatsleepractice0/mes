@@ -278,8 +278,8 @@ public class OperationalTaskHooks {
         if (!workstationChangeoverForOperationalTasks.isEmpty()) {
             Optional<Date> mayBeMaxFinishDate = workstationChangeoverService.getWorkstationChangeoversMaxFinishDate(workstationChangeoverForOperationalTasks);
 
-            Date startDate = operationalTask.getDateField(OperationalTaskFields.START_DATE);
-            if (mayBeMaxFinishDate.isPresent() && startDate.compareTo(mayBeMaxFinishDate.get()) < 0) {
+            if (mayBeMaxFinishDate.isPresent()) {
+                Date startDate = operationalTask.getDateField(OperationalTaskFields.START_DATE);
                 Date finishDate = operationalTask.getDateField(OperationalTaskFields.FINISH_DATE);
 
                 int duration = Seconds.secondsBetween(new DateTime(startDate), new DateTime(finishDate)).getSeconds();

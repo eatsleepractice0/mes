@@ -48,7 +48,6 @@
         <decimal name="usedQuantity"/>
         <decimal name="producedQuantity"/>
         <boolean name="replacement"/>
-        <string name="warehouseNumber"/>
     </fields>
 
     <masterModel plugin="basicProductionCounting" model="productionCountingQuantity"/>

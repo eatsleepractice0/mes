@@ -64,12 +64,14 @@
         <string name="batchNumber"/>
         <belongsTo name="batch" model="batch" plugin="advancedGenealogy"/>
 
-        <belongsTo name="qualityCard" model="qualityCard" plugin="basic"/>
+        <belongsTo name="qualityCard" model="qualityCard" plugin="technologies"/>
 
         <hasMany name="deliveredProducts" model="deliveredProduct"
-                 joinField="orderedProduct"/>
+                 joinField="orderedProduct" cascade="nullify" copyable="false"/>
 
         <boolean name="addBatch" default="false" persistent="false"/>
+
+        <datetime name="pickingDate" copyable="false"/>
     </fields>
 
     <hooks>

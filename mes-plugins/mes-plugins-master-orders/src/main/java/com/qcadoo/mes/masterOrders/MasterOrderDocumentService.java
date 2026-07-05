@@ -1,23 +1,23 @@
 package com.qcadoo.mes.masterOrders;
 
 import com.google.common.collect.Maps;
+import com.qcadoo.localization.api.TranslationService;
 import com.qcadoo.mes.basic.ParameterService;
 import com.qcadoo.mes.basic.constants.ProductFields;
 import com.qcadoo.mes.basic.constants.UnitConversionItemFieldsB;
-import com.qcadoo.mes.masterOrders.constants.DocumentFieldsMO;
 import com.qcadoo.mes.masterOrders.constants.MasterOrderFields;
 import com.qcadoo.mes.masterOrders.constants.MasterOrderProductFields;
-import com.qcadoo.mes.masterOrders.constants.ParameterFieldsMO;
-import com.qcadoo.mes.masterOrders.hooks.MasterOrderPositionStatus;
 import com.qcadoo.mes.materialFlowResources.constants.*;
 import com.qcadoo.mes.materialFlowResources.exceptions.DocumentBuildException;
 import com.qcadoo.mes.materialFlowResources.service.DocumentBuilder;
 import com.qcadoo.mes.materialFlowResources.service.DocumentManagementService;
-import com.qcadoo.model.api.*;
+import com.qcadoo.model.api.BigDecimalUtils;
+import com.qcadoo.model.api.DataDefinitionService;
+import com.qcadoo.model.api.Entity;
+import com.qcadoo.model.api.NumberService;
 import com.qcadoo.model.api.search.SearchRestrictions;
 import com.qcadoo.model.api.units.PossibleUnitConversions;
 import com.qcadoo.model.api.units.UnitConversionService;
-import com.qcadoo.model.constants.DictionaryItemFields;
 import com.qcadoo.security.api.SecurityService;
 import com.qcadoo.security.constants.QcadooSecurityConstants;
 import com.qcadoo.view.api.ComponentState;
@@ -26,6 +26,7 @@ import com.qcadoo.view.api.components.FormComponent;
 import com.qcadoo.view.constants.QcadooViewConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -36,6 +37,8 @@ import java.util.Objects;
 @Service
 public class MasterOrderDocumentService {
 
+
+    public static final String L_MASTER_ORDER_RELEASE_LOCATION = "masterOrderReleaseLocation";
     @Autowired
     private DataDefinitionService dataDefinitionService;
 
@@ -49,7 +52,7 @@ public class MasterOrderDocumentService {
     private ParameterService parameterService;
 
     @Autowired
-    private DictionaryService dictionaryService;
+    private TranslationService translationService;
 
     @Autowired
     private UnitConversionService unitConversionService;
@@ -64,7 +67,7 @@ public class MasterOrderDocumentService {
         Entity user = dataDefinitionService.get(QcadooSecurityConstants.PLUGIN_IDENTIFIER, QcadooSecurityConstants.MODEL_USER)
                 .get(securityService.getCurrentUserId());
 
-        Entity masterOrderReleaseLocation = parameterService.getParameter().getBelongsToField(ParameterFieldsMO.MASTER_ORDER_RELEASE_LOCATION);
+        Entity masterOrderReleaseLocation = parameterService.getParameter().getBelongsToField(L_MASTER_ORDER_RELEASE_LOCATION);
         if (masterOrderReleaseLocation.getBooleanField(LocationFieldsMFR.DRAFT_MAKES_RESERVATION)) {
             for (Entity masterOrderProduct : masterOrderProducts) {
                 Entity mo = masterOrderProduct.getDataDefinition().getMasterModelEntity(masterOrderProduct.getId());
@@ -82,9 +85,11 @@ public class MasterOrderDocumentService {
 
         DocumentBuilder documentBuilder = documentManagementService.getDocumentBuilder(user);
         documentBuilder.release(masterOrderReleaseLocation);
+        documentBuilder.setField(DocumentFields.DESCRIPTION,
+                translationService.translate("masterOrders.masterOrder.releaseDocument.description",
+                        LocaleContextHolder.getLocale(), masterOrderFormEntity.getStringField(MasterOrderFields.NUMBER)));
         documentBuilder.setField(DocumentFields.COMPANY, masterOrderFormEntity.getBelongsToField(MasterOrderFields.COMPANY));
         documentBuilder.setField(DocumentFields.ADDRESS, masterOrderFormEntity.getBelongsToField(MasterOrderFields.ADDRESS));
-        documentBuilder.setField(DocumentFieldsMO.MASTER_ORDER, masterOrderFormEntity);
 
         for (Entity masterOrderProduct : masterOrderProducts) {
             Entity mo = masterOrderProduct.getDataDefinition().getMasterModelEntity(masterOrderProduct.getId());
@@ -94,11 +99,7 @@ public class MasterOrderDocumentService {
                     .create();
 
             Entity product = mo.getBelongsToField(MasterOrderProductFields.PRODUCT);
-            BigDecimal quantity = masterOrderProduct.getDecimalField(MasterOrderProductFields.QUANTITY_TO_RELEASE);
-            if (BigDecimal.ZERO.compareTo(quantity) >= 0) {
-                continue;
-            }
-            setMasterOrderPositionStatus(mo);
+            BigDecimal quantity = mo.getDecimalField(MasterOrderProductFields.MASTER_ORDER_QUANTITY);
             BigDecimal conversion = BigDecimal.ONE;
             String additionalUnit = product.getStringField(ProductFields.ADDITIONAL_UNIT);
             String unit = product.getStringField(ProductFields.UNIT);
@@ -124,11 +125,11 @@ public class MasterOrderDocumentService {
 
             position.setField(PositionFields.QUANTITY, quantity);
             position.setField(PositionFields.PRODUCT, product);
-            position.setField(PositionFields.SELLING_PRICE, mo.getDecimalField(MasterOrderProductFields.PRICE));
 
             position.setField(PositionFields.DOCUMENT, documentBuilder.getDocument());
 
             documentBuilder.addPosition(position);
+
         }
 
         try {
@@ -144,17 +145,6 @@ public class MasterOrderDocumentService {
             view.addMessage("masterOrders.masterOrder.createReleaseDocument.error", ComponentState.MessageType.FAILURE);
         }
 
-    }
-
-    private void setMasterOrderPositionStatus(final Entity masterOrderProduct) {
-        Entity item = dictionaryService.getItemEntityByTechnicalCode(MasterOrderProductFields.MASTER_ORDER_POSITION_STATUS,
-                MasterOrderPositionStatus.RELEASED.getStringValue());
-
-        if (Objects.nonNull(item)) {
-            masterOrderProduct.setField(MasterOrderProductFields.MASTER_ORDER_POSITION_STATUS,
-                    item.getStringField(DictionaryItemFields.NAME));
-            masterOrderProduct.getDataDefinition().save(masterOrderProduct);
-        }
     }
 
     private BigDecimal getAvailableQuantityForProductAndLocation(Entity product, Entity location) {

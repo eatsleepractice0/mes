@@ -31,61 +31,16 @@ public class WorkstationChangeoverNormHooks {
     @Autowired
     private TranslationService translationService;
 
-    public boolean validatesWith(final DataDefinition workstationChangeoverNormDD,
-                                 final Entity workstationChangeoverNorm) {
-        boolean isValid = checkIfWorkstationTypeOrWorkstationAreEmpty(workstationChangeoverNorm);
-        isValid = isValid && checkIfFromAndToAttributeValuesAreEmptyOrSame(workstationChangeoverNorm);
+    public boolean validatesWith(final DataDefinition workstationChangeoverNormDD, final Entity workstationChangeoverNorm) {
+        boolean isValid = checkIfWorkstationTypeOrWorkstationAreEmpty(workstationChangeoverNormDD, workstationChangeoverNorm);
+
+        isValid = isValid && checkIfFromAndToAttributeValuesAreEmptyOrSame(workstationChangeoverNormDD, workstationChangeoverNorm);
         isValid = isValid && checkIfWorkstationChangeoverNormIsUnique(workstationChangeoverNormDD, workstationChangeoverNorm);
-        isValid = isValid && checkIfWorkstationChangeoverNormExistsWithOtherType(workstationChangeoverNormDD, workstationChangeoverNorm);
 
         return isValid;
     }
 
-    private boolean checkIfWorkstationChangeoverNormExistsWithOtherType(DataDefinition workstationChangeoverNormDD,
-                                                                        Entity workstationChangeoverNorm) {
-        Entity workstationType = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.WORKSTATION_TYPE);
-        Entity workstation = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.WORKSTATION);
-        Entity attribute = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.ATTRIBUTE);
-        String changeoverType = workstationChangeoverNorm.getStringField(WorkstationChangeoverNormFields.CHANGEOVER_TYPE);
-
-        SearchCriteriaBuilder searchCriteriaBuilder = prepareWorkstationAndAttributeCriteria(workstationChangeoverNormDD, workstationType, workstation, attribute);
-
-        if (WorkstationChangeoverNormChangeoverType.BETWEEN_VALUES.getStringValue().equals(changeoverType)) {
-            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.CHANGEOVER_TYPE, WorkstationChangeoverNormChangeoverType.ANY_CHANGE.getStringValue()));
-        } else {
-            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.CHANGEOVER_TYPE, WorkstationChangeoverNormChangeoverType.BETWEEN_VALUES.getStringValue()));
-        }
-
-        if (Objects.nonNull(searchCriteriaBuilder.setMaxResults(1).uniqueResult())) {
-            workstationChangeoverNorm.addGlobalError("technologies.workstationChangeoverNorm.error.otherTypeExists");
-
-            return false;
-        }
-
-        return true;
-    }
-
-    private SearchCriteriaBuilder prepareWorkstationAndAttributeCriteria(DataDefinition workstationChangeoverNormDD,
-                                                                         Entity workstationType, Entity workstation,
-                                                                         Entity attribute) {
-        SearchCriteriaBuilder searchCriteriaBuilder = workstationChangeoverNormDD.find();
-
-        if (Objects.nonNull(workstationType)) {
-            searchCriteriaBuilder.createAlias(WorkstationChangeoverNormFields.WORKSTATION_TYPE, WorkstationChangeoverNormFields.WORKSTATION_TYPE, JoinType.LEFT);
-            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.WORKSTATION_TYPE + L_DOT + L_ID, workstationType.getId()));
-        }
-        if (Objects.nonNull(workstation)) {
-            searchCriteriaBuilder.createAlias(WorkstationChangeoverNormFields.WORKSTATION, WorkstationChangeoverNormFields.WORKSTATION, JoinType.LEFT);
-            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.WORKSTATION + L_DOT + L_ID, workstation.getId()));
-        }
-        if (Objects.nonNull(attribute)) {
-            searchCriteriaBuilder.createAlias(WorkstationChangeoverNormFields.ATTRIBUTE, WorkstationChangeoverNormFields.ATTRIBUTE, JoinType.LEFT);
-            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.ATTRIBUTE + L_DOT + L_ID, attribute.getId()));
-        }
-        return searchCriteriaBuilder;
-    }
-
-    private boolean checkIfWorkstationTypeOrWorkstationAreEmpty(final Entity workstationChangeoverNorm) {
+    private boolean checkIfWorkstationTypeOrWorkstationAreEmpty(final DataDefinition workstationChangeoverNormDD, final Entity workstationChangeoverNorm) {
         Entity workstationType = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.WORKSTATION_TYPE);
         Entity workstation = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.WORKSTATION);
 
@@ -98,7 +53,7 @@ public class WorkstationChangeoverNormHooks {
         return true;
     }
 
-    private boolean checkIfFromAndToAttributeValuesAreEmptyOrSame(final Entity workstationChangeoverNorm) {
+    private boolean checkIfFromAndToAttributeValuesAreEmptyOrSame(final DataDefinition workstationChangeoverNormDD, final Entity workstationChangeoverNorm) {
         String changeoverType = workstationChangeoverNorm.getStringField(WorkstationChangeoverNormFields.CHANGEOVER_TYPE);
         Entity fromAttributeValue = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.FROM_ATTRIBUTE_VALUE);
         Entity toAttributeValue = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.TO_ATTRIBUTE_VALUE);
@@ -120,8 +75,7 @@ public class WorkstationChangeoverNormHooks {
         return true;
     }
 
-    private boolean checkIfWorkstationChangeoverNormIsUnique(final DataDefinition workstationChangeoverNormDD,
-                                                             final Entity workstationChangeoverNorm) {
+    private boolean checkIfWorkstationChangeoverNormIsUnique(final DataDefinition workstationChangeoverNormDD, final Entity workstationChangeoverNorm) {
         Long workstationChangeoverNormId = workstationChangeoverNorm.getId();
         Entity workstationType = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.WORKSTATION_TYPE);
         Entity workstation = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.WORKSTATION);
@@ -130,7 +84,20 @@ public class WorkstationChangeoverNormHooks {
         Entity fromAttributeValue = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.FROM_ATTRIBUTE_VALUE);
         Entity toAttributeValue = workstationChangeoverNorm.getBelongsToField(WorkstationChangeoverNormFields.TO_ATTRIBUTE_VALUE);
 
-        SearchCriteriaBuilder searchCriteriaBuilder = prepareWorkstationAndAttributeCriteria(workstationChangeoverNormDD, workstationType, workstation, attribute);
+        SearchCriteriaBuilder searchCriteriaBuilder = workstationChangeoverNormDD.find();
+
+        if (Objects.nonNull(workstationType)) {
+            searchCriteriaBuilder.createAlias(WorkstationChangeoverNormFields.WORKSTATION_TYPE, WorkstationChangeoverNormFields.WORKSTATION_TYPE, JoinType.LEFT);
+            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.WORKSTATION_TYPE + L_DOT + L_ID, workstationType.getId()));
+        }
+        if (Objects.nonNull(workstation)) {
+            searchCriteriaBuilder.createAlias(WorkstationChangeoverNormFields.WORKSTATION, WorkstationChangeoverNormFields.WORKSTATION, JoinType.LEFT);
+            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.WORKSTATION + L_DOT + L_ID, workstation.getId()));
+        }
+        if (Objects.nonNull(attribute)) {
+            searchCriteriaBuilder.createAlias(WorkstationChangeoverNormFields.ATTRIBUTE, WorkstationChangeoverNormFields.ATTRIBUTE, JoinType.LEFT);
+            searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.ATTRIBUTE + L_DOT + L_ID, attribute.getId()));
+        }
 
         searchCriteriaBuilder.add(SearchRestrictions.eq(WorkstationChangeoverNormFields.CHANGEOVER_TYPE, changeoverType));
 
@@ -145,11 +112,11 @@ public class WorkstationChangeoverNormHooks {
             searchCriteriaBuilder.add(SearchRestrictions.idNe(workstationChangeoverNormId));
         }
 
-        if (Objects.nonNull(searchCriteriaBuilder.setMaxResults(1).uniqueResult())) {
-            workstationChangeoverNorm.addGlobalError("technologies.workstationChangeoverNorm.error.isNotUnique");
+       if (Objects.nonNull(searchCriteriaBuilder.setMaxResults(1).uniqueResult())) {
+           workstationChangeoverNorm.addGlobalError("technologies.workstationChangeoverNorm.error.isNotUnique");
 
-            return false;
-        }
+           return false;
+       }
 
         return true;
     }

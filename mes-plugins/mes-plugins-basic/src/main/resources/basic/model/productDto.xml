@@ -48,7 +48,6 @@
         <enum name="entityType" values="01particularProduct,02productsFamily"/>
         <string name="batchNumberPattern"/>
         <string name="description"/>
-        <string name="additionalCode"/>
     </fields>
 
     <identifier expression="#number + ' - ' + #name"/>

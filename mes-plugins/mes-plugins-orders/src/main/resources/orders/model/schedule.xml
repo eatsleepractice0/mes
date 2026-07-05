@@ -38,17 +38,19 @@
         <hasMany name="stateChanges" model="scheduleStateChange" joinField="schedule" cascade="delete"/>
         <enum name="sortOrder"
               values="01desc,02asc"
-              default="01desc"/>
+              default="01desc"
+              required="true"/>
         <enum name="workstationAssignCriterion"
               values="01shortestTime,02leastWorkstations"
-              default="01shortestTime"/>
+              default="01shortestTime"
+              required="true"/>
         <enum name="workerAssignCriterion"
               values="01workstationLastOperatorLatestFinished,02workstationLastOperatorEarliestFinished,03workstationDefaultOperator"
               default="01workstationLastOperatorLatestFinished"
               required="true"/>
+        <boolean name="scheduleForBuffer" default="false"/>
         <boolean name="additionalTimeExtendsOperation" default="true"/>
         <boolean name="includeTpz" default="true"/>
-        <boolean name="includeTpzChanged" default="false"/>
         <boolean name="onlyWorkstationsOfLineFromOrder" default="false"/>
         <datetime name="approveTime" />
 
@@ -61,7 +63,7 @@
                  persistent="false"/>
         <boolean name="isSetFieldsFromParameter"
                  persistent="false"/>
-        <string name="token" unique="true" copyable="false">
+        <string name="token" unique="true">
             <validatesLength max="36" />
         </string>
     </fields>

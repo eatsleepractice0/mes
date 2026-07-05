@@ -49,10 +49,6 @@ public final class MasterOrderProductFields {
 
     public static final String QUANTITY_REMAINING_TO_ORDER = "quantityRemainingToOrder";
 
-    public static final String RELEASE_QUANTITY = "releaseQuantity";
-
-    public static final String QUANTITY_TO_RELEASE = "quantityToRelease";
-
     public static final String DEFAULT_TECHNOLOGY = "defaultTechnology";
 
     public static final String COMMENTS = "comments";
@@ -66,7 +62,5 @@ public final class MasterOrderProductFields {
     public static final String DELIVERY_DATE = "deliveryDate";
 
     public static final String VENDOR_INFO = "vendorInfo";
-
-    public static final String PRICE = "price";
 
 }

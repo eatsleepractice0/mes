@@ -65,7 +65,6 @@ public class OperationalTaskHolder {
     private Long orderId;
 
     private String dashboardShowForProduct;
-    private String productionTrackingStaff;
 
     private boolean dashboardShowDescription;
 
@@ -250,13 +249,5 @@ public class OperationalTaskHolder {
 
     public void setOrderProductName(String orderProductName) {
         this.orderProductName = orderProductName;
-    }
-
-    public String getProductionTrackingStaff() {
-        return productionTrackingStaff;
-    }
-
-    public void setProductionTrackingStaff(String productionTrackingStaff) {
-        this.productionTrackingStaff = productionTrackingStaff;
     }
 }

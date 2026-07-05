@@ -24,6 +24,7 @@
 package com.qcadoo.mes.productFlowThruDivision.service;
 
 import com.google.common.collect.*;
+import com.qcadoo.localization.api.TranslationService;
 import com.qcadoo.mes.basic.constants.BasicConstants;
 import com.qcadoo.mes.basic.constants.ProductFields;
 import com.qcadoo.mes.basic.constants.UnitConversionItemFieldsB;
@@ -35,9 +36,10 @@ import com.qcadoo.mes.materialFlow.constants.LocationFields;
 import com.qcadoo.mes.materialFlow.constants.MaterialFlowConstants;
 import com.qcadoo.mes.materialFlowResources.MaterialFlowResourcesService;
 import com.qcadoo.mes.materialFlowResources.constants.ResourceStockDtoFields;
+import com.qcadoo.mes.materialFlowResources.service.DocumentManagementService;
 import com.qcadoo.mes.orders.constants.OrderFields;
 import com.qcadoo.mes.orders.constants.OrdersConstants;
-import com.qcadoo.mes.technologies.constants.Range;
+import com.qcadoo.mes.productFlowThruDivision.constants.Range;
 import com.qcadoo.mes.productFlowThruDivision.constants.*;
 import com.qcadoo.mes.productFlowThruDivision.hooks.TechnologyHooksPFTD;
 import com.qcadoo.mes.productFlowThruDivision.warehouseIssue.CreationDocumentResponse;
@@ -83,6 +85,9 @@ public class WarehouseIssueService {
     private static final String L_PRODUCT = "product";
 
     @Autowired
+    private DocumentManagementService documentManagementService;
+
+    @Autowired
     private DataDefinitionService dataDefinitionService;
 
     @Autowired
@@ -96,6 +101,9 @@ public class WarehouseIssueService {
 
     @Autowired
     private UnitConversionService unitConversionService;
+
+    @Autowired
+    private TranslationService translationService;
 
     @Autowired
     private SecurityService securityService;
@@ -217,7 +225,7 @@ public class WarehouseIssueService {
     private List<Entity> createProductIssueEntryForDivision(final Entity divisionEntity, final Entity warehouseIssue,
             final Entity order) {
         if (Objects.nonNull(divisionEntity)) {
-            String range = order.getBelongsToField(OrderFields.TECHNOLOGY).getStringField(TechnologyFields.RANGE);
+            String range = order.getBelongsToField(OrderFields.TECHNOLOGY).getStringField(TechnologyFieldsPFTD.RANGE);
 
             List<Entity> coverageProducts = getProductionCountingQuantityDD().find()
                     .add(SearchRestrictions.belongsTo(ProductionCountingQuantityFields.ORDER, order))
@@ -426,7 +434,7 @@ public class WarehouseIssueService {
                     validDocuments.add(response.getDocument());
                 } else {
                     if (!response.getErrors().isEmpty()) {
-                        response.getErrors().forEach(view::addMessage);
+                        response.getErrors().forEach(er -> view.addMessage(er));
                     }
 
                     throw new RuntimeExceptionWithArguments(
@@ -555,17 +563,17 @@ public class WarehouseIssueService {
 
         boolean isValid = true;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuffer buffer = new StringBuffer();
 
         for (Entity issue : issues) {
             Entity product = issue.getBelongsToField(IssueFields.PRODUCT);
 
             if (Objects.isNull(location)) {
-                if (sb.length() != 0) {
-                    sb.append(", ");
+                if (buffer.length() != 0) {
+                    buffer.append(", ");
                 }
 
-                sb.append(product.getStringField(ProductFields.NUMBER));
+                buffer.append(product.getStringField(ProductFields.NUMBER));
 
                 isValid = false;
             } else {
@@ -574,11 +582,11 @@ public class WarehouseIssueService {
 
                 if (Objects.isNull(locationsQuantity) || Objects.isNull(issueQuantity)
                         || locationsQuantity.compareTo(issueQuantity) < 0) {
-                    if (sb.length() != 0) {
-                        sb.append(", ");
+                    if (buffer.length() != 0) {
+                        buffer.append(", ");
                     }
 
-                    sb.append(product.getStringField(ProductFields.NUMBER));
+                    buffer.append(product.getStringField(ProductFields.NUMBER));
 
                     isValid = false;
                 }
@@ -592,7 +600,7 @@ public class WarehouseIssueService {
             }
         }
 
-        return new UpdateIssuesLocationsQuantityStatusHolder(isValid, sb.toString());
+        return new UpdateIssuesLocationsQuantityStatusHolder(isValid, buffer.toString());
     }
 
     private DataDefinition getLocationDD() {

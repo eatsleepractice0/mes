@@ -37,10 +37,10 @@
             <validatesLength max="2048"/>
         </string>
 
-        <belongsTo name="order" plugin="orders" model="order"/>
+        <belongsTo name="order" plugin="orders" model="orderDto"/>
 
-        <datetime name="orderStartDate" persistent="false"/>
-        <string name="orderProductionLineNumber" persistent="false"/>
+        <datetime name="orderStartDate"/>
+        <string name="orderProductionLineNumber"/>
 
         <belongsTo name="placeOfIssue" model="location"
                    plugin="materialFlow" required="true"/>
@@ -69,10 +69,10 @@
                  model="warehouseIssueStateChange" cascade="delete"/>
 
         <hasMany name="issues" joinField="warehouseIssue"
-                 model="issue" cascade="delete"/>
+                 model="issue" cascade="delete" copyable="false"/>
 
         <hasMany name="productsToIssues" joinField="warehouseIssue"
-                 model="productsToIssue" cascade="delete"/>
+                 model="productsToIssue" cascade="delete" copyable="false"/>
 
         <hasMany name="corrections" model="productToIssueCorrection" joinField="warehouseIssue" cascade="delete"/>
     </fields>

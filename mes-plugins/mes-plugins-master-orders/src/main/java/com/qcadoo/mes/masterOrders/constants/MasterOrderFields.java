@@ -97,11 +97,4 @@ public final class MasterOrderFields {
 
     public static final String MASTER_ORDERS_MATERIAL_REQUIREMENTS = "masterOrdersMaterialRequirements";
 
-    public static final String DELIVERY_DATE = "deliveryDate";
-
-    public static final String PRICE = "price";
-
-    public static final String DELIVERY_METHOD = "deliveryMethod";
-    public static final String BASE_ORDER_ID = "baseOrderId";
-
 }

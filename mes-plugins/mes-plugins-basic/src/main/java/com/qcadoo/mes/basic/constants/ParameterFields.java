@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -69,32 +69,8 @@ public final class ParameterFields {
 
     public static final String NUMBER_OFFICE_LICENSES = "numberOfficeLicenses";
 
-    public static final String NUMBER_APS_LICENSES = "numberAPSLicenses";
-
-    public static final String NUMBER_WMS_MOBILE_LICENSES = "numberWMSMobileLicenses";
-
     public static final String MANY_ARTICLES_WITH_THE_SAME_EAN = "manyArticlesWithTheSameEAN";
 
     public static final String NO_EXCHANGE_RATE_DOWNLOAD = "noExchangeRateDownload";
 
-    public static final String EMAIL_HOST = "emailHost";
-
-    public static final String EMAIL_PORT = "emailPort";
-
-    public static final String EMAIL_USERNAME = "emailUsername";
-
-    public static final String EMAIL_PASSWORD = "emailPassword";
-
-    public static final String EMAIL_FOR_CONFIRMATION = "emailForConfirmation";
-    public static final String SHOW_ON_PRODUCTION_GUIDE = "showOnProductionGuide";
-
-    public static final String MRP_ALGORITHM = "mrpAlgorithm";
-    public static final String MR_INCLUDE_WAREHOUSE = "mrIncludeWarehouse";
-
-    public static final String MR_SHOW_CURRENT_STOCK_LEVEL = "mrShowCurrentStockLevel";
-
-    public static final String MR_INCLUDE_START_DATE_ORDER = "mrIncludeStartDateOrder";
-
-    public static final String MR_SHOW_REPLACEMENTS = "mrShowReplacements";
-    public static final String GENERATE_ADDITIONAL_CODE_IN_EACH_PRODUCT = "generateAdditionalCodeInEachProduct";
 }

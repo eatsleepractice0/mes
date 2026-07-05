@@ -17,7 +17,6 @@ public class ResourceDto {
     private BigDecimal availableQuantity;
     private BigDecimal reservedQuantity;
     private String givenUnit;
-    private String productUnit;
     private Long storageLocationId;
     private String storageLocationNumber;
     private Long productId;
@@ -26,10 +25,6 @@ public class ResourceDto {
     private Long palletNumberId;
     private String palletNumberNumber;
     private String batch;
-
-    private Long batchId;
-
-    private Long typeOfLoadUnitId;
 
     public BigDecimal getAvailableQuantity() {
         return availableQuantity;
@@ -183,8 +178,7 @@ public class ResourceDto {
         this.batch = batch;
     }
 
-    @Override
-    public boolean equals(Object o) {
+    @Override public boolean equals(Object o) {
         if (this == o)
             return true;
         if (!(o instanceof ResourceDto))
@@ -198,38 +192,11 @@ public class ResourceDto {
                 Objects.equals(productNumber, that.productNumber) &&
                 Objects.equals(palletNumberId, that.palletNumberId) &&
                 Objects.equals(batch, that.batch) &&
-                Objects.equals(batchId, that.batchId) &&
-                Objects.equals(palletNumberNumber, that.palletNumberNumber) &&
-                Objects.equals(typeOfLoadUnitId, that.typeOfLoadUnitId);
+                Objects.equals(palletNumberNumber, that.palletNumberNumber);
     }
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         return Objects.hash(id, number, storageLocationId, storageLocationNumber, productId,
-                productNumber, palletNumberId, batch, batchId, palletNumberNumber, typeOfLoadUnitId);
-    }
-
-    public String getProductUnit() {
-        return productUnit;
-    }
-
-    public void setProductUnit(String productUnit) {
-        this.productUnit = productUnit;
-    }
-
-    public Long getBatchId() {
-        return batchId;
-    }
-
-    public void setBatchId(Long batchId) {
-        this.batchId = batchId;
-    }
-
-    public Long getTypeOfLoadUnitId() {
-        return typeOfLoadUnitId;
-    }
-
-    public void setTypeOfLoadUnitId(Long typeOfLoadUnitId) {
-        this.typeOfLoadUnitId = typeOfLoadUnitId;
+                productNumber, palletNumberId, batch, palletNumberNumber);
     }
 }

@@ -94,32 +94,22 @@
         <security:role identifier="ROLE_MACHINE_PARTS"/>
         <security:role identifier="ROLE_COUNTRIES"/>
         <security:role identifier="ROLE_PARAMETERS"/>
-        <security:role identifier="ROLE_PARAMETERS_MENU"/>
 
         <security:role identifier="ROLE_TECHNOLOGIES"/>
         <security:role identifier="ROLE_TECHNOLOGIES_ADVANCED"/>
 
         <security:role identifier="ROLE_PLANNING"/>
         <security:role identifier="ROLE_PLANNING_MENU"/>
-        <security:role identifier="ROLE_PLANNING_PARAMETERS"/>
-        <security:role identifier="ROLE_PLANNER_PARAMETERS"/>
         <security:role identifier="ROLE_ORDERS_VIEW"/>
-        <security:role identifier="ROLE_ORDER_DETAILS_VIEW"/>
         <security:role identifier="ROLE_PLANNING_ORDERS"/>
         <security:role identifier="ROLE_PLANNING_MASTER_ORDERS"/>
-        <security:role identifier="ROLE_MASTER_ORDERS_CREATE_RELEASE"/>
-        <security:role identifier="ROLE_SCHEDULES"/>
         <security:role identifier="ROLE_PRODUCTION_LINE_SCHEDULES"/>
         <security:role identifier="ROLE_OPTIMIZE_CUTTING"/>
-        <security:role identifier="ROLE_SALE"/>
-        <security:role identifier="ROLE_WORKSTATION_CHANGEOVERS"/>
-        <security:role identifier="ROLE_OPERATIONAL_TASKS"/>
 
         <security:role identifier="ROLE_PLANNING_ON_LINE_VIEW"/>
         <security:role identifier="ROLE_PLANNING_ON_LINE_ACTIONS"/>
 
         <security:role identifier="ROLE_PRODUCTION_COUNTING"/>
-        <security:role identifier="ROLE_PRODUCTION_COUNTING_QUANTITY"/>
 
         <security:role identifier="ROLE_PRODUCTION_TRACKING"/>
 
@@ -204,8 +194,6 @@
         <security:role identifier="ROLE_DELIVERIES"/>
         <security:role identifier="ROLE_DELIVERIES_EDIT"/>
         <security:role identifier="ROLE_DELIVERIES_STATES_DECLINE"/>
-        <security:role identifier="ROLE_DELIVERIES_STATES_APPROVE"/>
-        <security:role identifier="ROLE_DELIVERIES_STATES_ACCEPT"/>
         <security:role identifier="ROLE_DELIVERIES_STATES_OTHER"/>
         <security:role identifier="ROLE_DELIVERIES_PRICE"/>
 
@@ -219,7 +207,22 @@
         <security:role identifier="ROLE_REPAIR_ORDERS"/>
 
         <security:role identifier="ROLE_DOCUMENTS_CORRECTIONS_MIN_STATES"/>
-        <security:role identifier="ROLE_DOCUMENTS_STATES_ACCEPT"/>
+
+        <security:role identifier="ROLE_TERMINAL_USER"/>
+        <security:role identifier="ROLE_TERMINAL_CONFECTION_USER"/>
+        <security:role identifier="ROLE_TERMINAL_EXTRUSION_USER"/>
+        <security:role identifier="ROLE_TERMINAL_EXTRUSION_PRINT"/>
+        <security:role identifier="ROLE_EXTRUSION_PROTOCOLS_LIST"/>
+        <security:role identifier="ROLE_TERMINAL_PALLET_USER"/>
+        <security:role identifier="ROLE_PALLET_LIST"/>
+        <security:role identifier="ROLE_PALLET_LIST_EDIT"/>
+        <security:role identifier="ROLE_TERMINAL_PALLET_PRINT_MULTIPLE"/>
+        <security:role identifier="ROLE_TERMINAL_CONFECTION_PRINT_MULTIPLE"/>
+        <security:role identifier="ROLE_TERMINAL_CARTON_LABELS"/>
+        <security:role identifier="ROLE_TERMINAL_PALLET_PRINT_MULTIPLE"/>
+        <security:role identifier="ROLE_PALLET_DETAILS_FIX_STATE"/>
+        <security:role identifier="ROLE_PRINTED_LABEL_DETAILS_REPRINT"/>
+        <security:role identifier="ROLE_PRINTED_PALLET_LABELS"/>
 
         <security:role identifier="ROLE_SUBCONTRACTOR"/>
         <security:role identifier="ROLE_LOGS"/>
@@ -244,7 +247,6 @@
         <security:role identifier="ROLE_STOPPAGE_REASONS"/>
 
         <security:role identifier="ROLE_WMS"/>
-        <security:role identifier="ROLE_WMS_ACTIONS"/>
 
         <security:role identifier="ROLE_TECHNOLOGICAL_PROCESSES"/>
         <security:role identifier="ROLE_ORDER_TECHNOLOGICAL_PROCESSES"/>
@@ -252,7 +254,6 @@
         <security:role identifier="ROLE_CLEAN_EXTERNAL_NUMBER"/>
 
         <security:role identifier="ROLE_DASHBOARD_KANBAN"/>
-        <security:role identifier="ROLE_DASHBOARD_PARAMETERS"/>
         <security:role identifier="ROLE_DASHBOARD_KANBAN_CREATE_ORDERS"/>
         <security:role identifier="ROLE_DASHBOARD_KANBAN_GOTO_ORDER_EDIT"/>
         <security:role identifier="ROLE_DASHBOARD_KANBAN_PRINT_LABEL"/>
@@ -273,8 +274,6 @@
 
         <security:role identifier="ROLE_OPERATIONAL_TASKS_GANTT_EDIT"/>
 
-        <security:role identifier="ROLE_OPERATIONAL_TASKS_GANTT_RECALCULATE"/>
-
         <security:role identifier="ROLE_ORDERS_GANTT_VIEW"/>
 
         <security:role identifier="ROLE_ORDERS_GANTT_EDIT"/>
@@ -288,9 +287,6 @@
         <security:role identifier="ROLE_REQUEST_FOR_QUOTATIONS"/>
         <security:role identifier="ROLE_OFFERS"/>
         <security:role identifier="ROLE_NEGOTIATIONS"/>
-
-        <security:role identifier="ROLE_RELEASE_FOR_PAYMENT"/>
-        <security:role identifier="ROLE_EMAIL_PARAMETERS"/>
 
         <model:model model="company" resource="model/company.xml"/>
         <model:model model="staff" resource="model/staff.xml"/>
@@ -368,18 +364,12 @@
 
         <model:model model="licenseUsage" resource="model/licenseUsage.xml"/>
 
-        <model:model model="qualityCard" resource="model/qualityCard.xml"/>
-        <model:model model="qualityCardStateChange" resource="model/qualityCardStateChange.xml"/>
-
-        <model:model model="typeOfLoadUnit" resource="model/typeOfLoadUnit.xml"/>
-
-        <model:dictionary name="sampling"/>
-
         <model:dictionary name="categories"/>
         <model:dictionary name="reasonTypeOfChangingOrderState"/>
 
         <model:dictionary name="typeOfSubassembly"/>
 
+        <model:dictionary name="typeOfPallet"/>
         <model:dictionary name="addressType"/>
 
         <model:dictionary name="descriptionTypes"/>
@@ -395,7 +385,7 @@
         <menu:menu-category name="staff"/>
         <menu:menu-category name="products"/>
         <menu:menu-category name="companyStructure" defaultAuthorizationRole="ROLE_COMPANY_STRUCTURE"/>
-        <menu:menu-category name="parameters" defaultAuthorizationRole="ROLE_PARAMETERS_MENU"/>
+        <menu:menu-category name="parameters" defaultAuthorizationRole="ROLE_PARAMETERS"/>
 
         <menu:menu-item-url name="home" category="home"
                             url="/dashboard.html"/>
@@ -429,9 +419,6 @@
                         defaultAuthorizationRole="ROLE_PALLET_NUMBERS"/>
         <menu:menu-item name="palletNumberHelpers" category="basic" view="palletNumberHelpersList"
                         defaultAuthorizationRole="ROLE_PALLET_NUMBERS"/>
-
-        <menu:menu-item name="typeOfLoadUnits" category="basic" view="typeOfLoadUnitsList"
-                        defaultAuthorizationRole="ROLE_BASE_FUNCTIONALITY"/>
 
         <menu:menu-item name="faultTypes" category="basic" view="faultTypesList"
                         defaultAuthorizationRole="ROLE_FAULT_TYPES"/>
@@ -534,9 +521,6 @@
 
         <view:view resource="view/palletNumberHelpersList.xml"/>
         <view:view resource="view/palletNumberHelperDetails.xml"/>
-
-        <view:view resource="view/typeOfLoadUnitsList.xml"/>
-        <view:view resource="view/typeOfLoadUnitDetails.xml"/>
 
         <view:view resource="view/faultTypesList.xml"/>
         <view:view resource="view/faultTypeDetails.xml"/>

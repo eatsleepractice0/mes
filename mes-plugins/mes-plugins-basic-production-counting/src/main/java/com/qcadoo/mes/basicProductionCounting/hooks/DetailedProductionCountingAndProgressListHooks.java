@@ -29,7 +29,6 @@ import com.qcadoo.mes.basic.constants.GlobalTypeOfMaterial;
 import com.qcadoo.mes.basicProductionCounting.ProductionTrackingUpdateService;
 import com.qcadoo.mes.basicProductionCounting.constants.BasicProductionCountingConstants;
 import com.qcadoo.mes.basicProductionCounting.constants.ProductionCountingQuantityFields;
-import com.qcadoo.mes.basicProductionCounting.constants.ProductionCountingQuantityRole;
 import com.qcadoo.mes.basicProductionCounting.hooks.util.ProductionProgressModifyLockHelper;
 import com.qcadoo.mes.orders.OrderService;
 import com.qcadoo.mes.orders.constants.OrderFields;
@@ -44,15 +43,16 @@ import com.qcadoo.view.api.ViewDefinitionState;
 import com.qcadoo.view.api.components.FormComponent;
 import com.qcadoo.view.api.components.GridComponent;
 import com.qcadoo.view.constants.QcadooViewConstants;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Service
 public class DetailedProductionCountingAndProgressListHooks {
@@ -60,6 +60,8 @@ public class DetailedProductionCountingAndProgressListHooks {
     private static final Logger LOG = LoggerFactory.getLogger(DetailedProductionCountingAndProgressListHooks.class);
 
     private static final String L_ORDER = "order";
+
+    public static final String L_ORDER_FORM = "order";
 
     @Autowired
     private OrderService orderService;
@@ -79,6 +81,9 @@ public class DetailedProductionCountingAndProgressListHooks {
 
         if (!grid.getSelectedEntitiesIds().isEmpty()
                 && grid.getSelectedEntitiesIds().size() == 1) {
+            FormComponent orderForm = (FormComponent) view.getComponentByReference(L_ORDER_FORM);
+
+            Long orderId = orderForm.getEntityId();
 
             Entity pcq = dataDefinitionService
                     .get(BasicProductionCountingConstants.PLUGIN_IDENTIFIER,
@@ -148,14 +153,9 @@ public class DetailedProductionCountingAndProgressListHooks {
         List<ErrorMessage> errors = Lists.newArrayList();
         for (Entity productionCountingQuantity : selectedEntities) {
             String typeOfMaterial = productionCountingQuantity.getStringField(ProductionCountingQuantityFields.TYPE_OF_MATERIAL);
-            String role = productionCountingQuantity.getStringField(ProductionCountingQuantityFields.ROLE);
 
             if (GlobalTypeOfMaterial.FINAL_PRODUCT.getStringValue().equals(typeOfMaterial)) {
                 state.addMessage("basicProductionCounting.productionCountingQuantity.error.cantDeleteFinal",
-                        ComponentState.MessageType.INFO);
-            } else if (GlobalTypeOfMaterial.INTERMEDIATE.getStringValue().equals(typeOfMaterial)
-                    && ProductionCountingQuantityRole.PRODUCED.getStringValue().equals(role)) {
-                state.addMessage("basicProductionCounting.productionCountingQuantity.error.cantDeleteIntermediate",
                         ComponentState.MessageType.INFO);
             } else {
                 ids.add(productionCountingQuantity.getId());
@@ -176,7 +176,7 @@ public class DetailedProductionCountingAndProgressListHooks {
         } else if (ids.size() > 1 && deleteSuccessful) {
             state.addMessage("qcadooView.message.deleteMessages", ComponentState.MessageType.SUCCESS, String.valueOf(ids.size()));
         } else if (!deleteSuccessful) {
-            errors.forEach(state::addMessage);
+            errors.stream().forEach(error -> state.addMessage(error));
         }
     }
 

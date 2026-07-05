@@ -29,6 +29,8 @@ public final class TechnologyFieldsPFTD {
 
     }
 
+    public static final String RANGE = "range";
+
     public static final String COMPONENTS_LOCATION = "componentsLocation";
 
     public static final String COMPONENTS_OUTPUT_LOCATION = "componentsOutputLocation";
@@ -40,5 +42,7 @@ public final class TechnologyFieldsPFTD {
     public static final String WASTE_RECEPTION_WAREHOUSE = "wasteReceptionWarehouse";
 
     public static final String PRODUCTION_FLOW = "productionFlow";
+
+    public static final String DIVISION = "division";
 
 }

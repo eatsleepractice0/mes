@@ -41,6 +41,16 @@
             <validatesUnscaledValue max="9"/>
             <validatesScale max="5"/>
         </decimal>
+        <decimal name="restAfterShiftDisposition" copyable="false">
+            <validatesRange from="0"/>
+            <validatesUnscaledValue max="9"/>
+            <validatesScale max="5"/>
+        </decimal>
+        <decimal name="restAfterShiftDispositionAddUnit" copyable="false">
+            <validatesRange from="0"/>
+            <validatesUnscaledValue max="9"/>
+            <validatesScale max="5"/>
+        </decimal>
         <decimal name="price" default="0">
             <validatesRange from="0"/>
         </decimal>
@@ -57,13 +67,12 @@
         <priority name="number" scope="document"/>
         <belongsTo name="resource" model="resource"/>
         <string name="resourceNumber"/>
-        <string name="transferResourceNumber"/>
 
         <belongsTo name="storageLocation" model="storageLocation"/>
 
         <decimal name="conversion" default="0"/>
         <belongsTo name="palletNumber" model="palletNumber" plugin="basic"/>
-        <belongsTo name="typeOfLoadUnit" plugin="basic" model="typeOfLoadUnit" />
+        <dictionary name="typeOfPallet" dictionary="typeOfPallet"/>
 
         <hasMany name="reservations" model="reservation" joinField="position" copyable="true" cascade="delete"/>
 
@@ -75,7 +84,6 @@
         <belongsTo name="pickingWorker" model="user" plugin="qcadooSecurity" copyable="false"/>
         <hasMany name="positionAttributeValues" joinField="position"
                        model="positionAttributeValue"/>
-        <string name="deliveryNumber"/>
     </fields>
     <hooks>
         <onCreate class="com.qcadoo.mes.materialFlowResources.hooks.PositionModelHooks" method="onCreate"/>

@@ -28,8 +28,6 @@ import com.qcadoo.mes.basicProductionCounting.constants.ProductionCountingQuanti
 import com.qcadoo.mes.basicProductionCounting.constants.ProductionCountingQuantityTypeOfMaterial;
 import com.qcadoo.mes.orders.constants.OrderFields;
 import com.qcadoo.mes.productFlowThruDivision.constants.*;
-import com.qcadoo.mes.technologies.constants.Range;
-import com.qcadoo.mes.technologies.constants.TechnologyFields;
 import com.qcadoo.mes.technologies.constants.TechnologyOperationComponentFields;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.view.api.ComponentState;
@@ -84,7 +82,7 @@ public class ProductionCountingQuantityAdvancedDetailsListenersPFTD {
             productsFlowLocationLookup.requestComponentUpdateState();
 
             Entity technology = order.getBelongsToField(OrderFields.TECHNOLOGY);
-            String range = technology.getStringField(TechnologyFields.RANGE);
+            String range = technology.getStringField(TechnologyFieldsPFTD.RANGE);
 
             if (Range.ONE_DIVISION.getStringValue().equals(range)) {
                 if (ProductionCountingQuantityRole.USED.getStringValue().equals(role)

@@ -36,7 +36,6 @@ public final class ProductFields {
     public static final String GLOBAL_TYPE_OF_MATERIAL = "globalTypeOfMaterial";
 
     public static final String EAN = "ean";
-    public static final String ADDITIONAL_CODE = "additionalCode";
 
     public static final String CATEGORY = "category";
 
@@ -81,8 +80,6 @@ public final class ProductFields {
     public static final String EXPIRY_DATE_VALIDITY_UNIT = "expiryDateValidityUnit";
 
     public static final String BATCH_EVIDENCE = "batchEvidence";
-
-    public static final String EXPIRATION_DATE_EVIDENCE = "expirationDateEvidence";
 
     public static final String MODEL = "model";
 

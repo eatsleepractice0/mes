@@ -47,8 +47,6 @@ public final class DocumentFields {
 
     public static final String COMPANY = "company";
 
-    public static final String STAFF = "staff";
-
     public static final String ADDRESS = "address";
 
     public static final String USER = "user";
@@ -71,11 +69,10 @@ public final class DocumentFields {
 
     public static final String STATE_IN_WMS = "stateInWMS";
 
+    public static final String EDIT_IN_WMS = "editInWMS";
+
     public static final String STATE_CHANGES = "stateChanges";
 
-    public static final String STOCKTAKING = "stocktaking";
-
     public static final String INVOICE_NUMBER = "invoiceNumber";
-    public static final String LOAD_UNITS_TRANSFER = "loadUnitsTransfer";
 
 }

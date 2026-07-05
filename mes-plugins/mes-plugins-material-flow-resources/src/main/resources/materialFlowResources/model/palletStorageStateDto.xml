@@ -31,12 +31,12 @@
     <fields>
         <string name="palletNumber"/>
         <boolean name="palletNumberActive"/>
-        <string name="typeOfLoadUnit"/>
+        <string name="typeOfPallet"/>
         <string name="storageLocationNumber"/>
         <string name="locationNumber"/>
         <integer name="location_id"/>
         <decimal name="totalQuantity">
-            <validatesRange from="0"/>
+            <validatesRange from="0" exclusively="false"/>
             <validatesUnscaledValue max="9"/>
             <validatesScale max="5"/>
         </decimal>
@@ -47,8 +47,6 @@
 
         <!-- fields used to transfer resources from one pallet to another -->
         <belongsTo name="newPalletNumber" model="palletStorageStateDto"/>
-
-        <belongsTo name="newTypeOfLoadUnit" model="typeOfLoadUnit" plugin="basic"/>
     </fields>
 
 </model>

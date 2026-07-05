@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -31,13 +31,13 @@ import com.qcadoo.mes.basic.util.UnitService;
 import com.qcadoo.model.api.DataDefinition;
 import com.qcadoo.model.api.DataDefinitionService;
 import com.qcadoo.model.api.Entity;
-import com.qcadoo.security.api.SecurityService;
 import com.qcadoo.view.api.ComponentState;
 import com.qcadoo.view.api.ViewDefinitionState;
 import com.qcadoo.view.api.components.*;
 import com.qcadoo.view.api.components.lookup.FilterValueHolder;
 import com.qcadoo.view.api.ribbon.RibbonActionItem;
 import com.qcadoo.view.api.ribbon.RibbonGroup;
+import com.qcadoo.view.api.utils.NumberGeneratorService;
 import com.qcadoo.view.constants.QcadooViewConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,19 +66,20 @@ public class ProductDetailsHooks {
 
     private static final String L_PRODUCT_MULTI_UPLOAD_LOCALE = "productMultiUploadLocale";
 
-    private static final String[] innerComponents = {ProductFields.SIZE, ProductFields.EXPIRY_DATE_VALIDITY, ProductFields.EXPIRY_DATE_VALIDITY_UNIT,
-            ProductFields.PRODUCT_FORM, ProductFields.SHOW_IN_PRODUCT_DATA};
+    private static final String[] innerComponents = { ProductFields.SIZE, ProductFields.EXPIRY_DATE_VALIDITY, ProductFields.EXPIRY_DATE_VALIDITY_UNIT,
+            ProductFields.PRODUCT_FORM, ProductFields.SHOW_IN_PRODUCT_DATA };
 
     @Autowired
     private DataDefinitionService dataDefinitionService;
 
     @Autowired
-    private UnitService unitService;
+    private NumberGeneratorService numberGeneratorService;
 
     @Autowired
-    private SecurityService securityService;
+    private UnitService unitService;
 
     public void onBeforeRender(final ViewDefinitionState view) {
+        generateProductNumber(view);
         fillUnit(view);
         disableProductFormForExternalItems(view);
         disableUnitFromWhenFormIsSaved(view);
@@ -88,6 +89,11 @@ public class ProductDetailsHooks {
         setProductIdForMultiUploadField(view);
         enableCharacteristicsTabForExternalItems(view);
         setCriteriaModifierParameters(view);
+    }
+
+    public void generateProductNumber(final ViewDefinitionState view) {
+        numberGeneratorService.generateAndInsertNumber(view, BasicConstants.PLUGIN_IDENTIFIER, BasicConstants.MODEL_PRODUCT,
+                QcadooViewConstants.L_FORM, ProductFields.NUMBER);
     }
 
     public void fillUnit(final ViewDefinitionState view) {
@@ -229,8 +235,6 @@ public class ProductDetailsHooks {
     }
 
     public void enableCharacteristicsTabForExternalItems(final ViewDefinitionState view) {
-        ComponentState showInProductData = view.getComponentByReference(ProductFields.SHOW_IN_PRODUCT_DATA);
-        showInProductData.setVisible(securityService.hasCurrentUserRole("ROLE_TECHNOLOGIES"));
         FormComponent productForm = (FormComponent) view.getComponentByReference(QcadooViewConstants.L_FORM);
         Long productId = productForm.getEntityId();
 

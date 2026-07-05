@@ -30,14 +30,12 @@ import com.qcadoo.mes.basic.constants.DashboardButtonFields;
 import com.qcadoo.mes.basic.constants.ParameterFields;
 import com.qcadoo.mes.basic.services.DashboardView;
 import com.qcadoo.mes.materialFlow.constants.ParameterFieldsMF;
-import com.qcadoo.mes.materialFlow.constants.WhatToShowOnDashboard;
 import com.qcadoo.model.api.Entity;
 import com.qcadoo.model.api.search.SearchOrders;
 import com.qcadoo.model.api.search.SearchRestrictions;
 import com.qcadoo.plugin.api.PluginUtils;
 import com.qcadoo.security.api.SecurityService;
 import com.qcadoo.security.api.UserService;
-import com.qcadoo.view.api.LogoComponent;
 import com.qcadoo.view.constants.MenuItemFields;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -66,9 +64,6 @@ public class DashboardViewMF implements DashboardView {
     @Autowired
     private ParameterService parameterService;
 
-    @Autowired
-    private LogoComponent logoComponent;
-
     @Value("${useCompressedStaticResources}")
     private boolean useCompressedStaticResources;
 
@@ -85,18 +80,12 @@ public class DashboardViewMF implements DashboardView {
 
             mav.addObject("translationsMap", translationService.getMessagesGroup("configurator", locale));
             mav.addObject("locale", locale.getLanguage());
-            mav.addObject("logoPath", logoComponent.prepareMenuLogoPath(false));
 
             return mav;
         }
 
         mav.setViewName("basic/dashboard");
 
-        String whatToShowOnDashboard = getWhatToShowOnDashboard(parameter);
-        if (WhatToShowOnDashboard.OPERATIONAL_TASKS.getStringValue().equals(whatToShowOnDashboard) &&
-                !securityService.hasCurrentUserRole("ROLE_OPERATIONAL_TASKS")) {
-            whatToShowOnDashboard = null;
-        }
         mav.addObject("locale", locale.getLanguage());
         mav.addObject("translationsMap", translationService.getMessagesGroup("dashboard", locale));
         mav.addObject("useCompressedStaticResources", useCompressedStaticResources);
@@ -106,8 +95,7 @@ public class DashboardViewMF implements DashboardView {
         mav.addObject("enableOrdersLinkOnDashboard", securityService.hasCurrentUserRole("ROLE_DASHBOARD_KANBAN_GOTO_ORDER_EDIT"));
         mav.addObject("enablePrintLabelOnDashboard", securityService.hasCurrentUserRole("ROLE_DASHBOARD_KANBAN_PRINT_LABEL"));
         mav.addObject("enableRegistrationTerminalOnDashboard", securityService.hasCurrentUserRole("ROLE_PRODUCTION_REGISTRATION_TERMINAL"));
-        mav.addObject("whatToShowOnDashboard", whatToShowOnDashboard);
-        mav.addObject("showProductionTrackingStaff", parameter.getBooleanField(ParameterFieldsMF.SHOW_PRODUCTION_TRACKING_STAFF));
+        mav.addObject("whatToShowOnDashboard", getWhatToShowOnDashboard(parameter));
         mav.addObject("quantityMadeOnTheBasisOfDashboard", parameter.getStringField("quantityMadeOnTheBasisOfDashboard"));
         mav.addObject("dashboardButtons", filterDashboardButtons(getDashboardButtons(parameter), currentUser));
 
@@ -134,8 +122,7 @@ public class DashboardViewMF implements DashboardView {
                 .addOrder(SearchOrders.asc(DashboardButtonFields.SUCCESSION)).list().getEntities());
     }
 
-    private LinkedList<Entity> filterDashboardButtons(final LinkedList<Entity> dashboardButtons,
-                                                      final Entity currentUser) {
+    private LinkedList<Entity> filterDashboardButtons(final LinkedList<Entity> dashboardButtons, final Entity currentUser) {
         LinkedList<Entity> filteredDashboardButtons = Lists.newLinkedList();
 
         dashboardButtons.forEach(dashboardButton -> {

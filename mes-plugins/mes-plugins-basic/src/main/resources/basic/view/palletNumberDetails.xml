@@ -50,27 +50,12 @@
 							]]>
 					</script>
 				</bigButton>
-				<bigButton name="printSmallPalletNumberReport" icon="pdfIcon24.png"
-						   state="enabled">
-					<script>
-						<![CDATA[
-								this.addOnChangeListener({
-									onClick: function() {
-										#{form}.performEvent({
-											name : 'printSmallPalletNumberReport',
-											args : ['pdf']
-										});
-									}
-								});
-							]]>
-					</script>
-				</bigButton>
 			</group>
 		</ribbon>
 
 		<component type="form" name="palletNumber" reference="form">
 			<component type="gridLayout" name="gridLayout" columns="3"
-					   rows="5" hasBorders="false">
+					   rows="4" hasBorders="false">
 				<layoutElement column="1" row="1">
 					<component type="input" name="number" field="number"
 							   reference="number">
@@ -93,11 +78,6 @@
 						<option type="withTimePicker" value="true"/>
 					</component>
 				</layoutElement>
-				<layoutElement column="1" row="5">
-					<component type="checkbox" name="printed" field="printed"
-							   reference="printed" defaultEnabled="never">
-					</component>
-				</layoutElement>
 			</component>
 
 			<option type="header" value="true"/>
@@ -106,9 +86,6 @@
 			<listener event="printPalletNumberReport"
 					  class="com.qcadoo.mes.basic.listeners.PalletNumberDetailsListeners"
 					  method="printPalletNumberReport"/>
-			<listener event="printSmallPalletNumberReport"
-					  class="com.qcadoo.mes.basic.listeners.PalletNumberDetailsListeners"
-					  method="printSmallPalletNumberReport"/>
 		</component>
 
 	</component>

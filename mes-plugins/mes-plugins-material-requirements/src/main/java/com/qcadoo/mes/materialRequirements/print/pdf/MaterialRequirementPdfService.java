@@ -3,19 +3,19 @@
  * Copyright (c) 2010 Qcadoo Limited
  * Project: Qcadoo MES
  * Version: 1.4
- * <p>
+ *
  * This file is part of Qcadoo.
- * <p>
+ *
  * Qcadoo is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation; either version 3 of the License,
  * or (at your option) any later version.
- * <p>
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty
  * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Affero General Public License for more details.
- * <p>
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
@@ -51,7 +51,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.*;
@@ -84,13 +83,6 @@ public final class MaterialRequirementPdfService extends PdfDocumentService {
 
     @Autowired
     private MaterialFlowResourcesService materialFlowResourcesService;
-
-    private Map<Entity, List<Entity>> replacements = new HashMap<>();
-
-    public void generateDocument(final Entity entity, Map<Entity, List<Entity>> replacements, final Locale locale) throws IOException, DocumentException {
-        this.replacements = replacements;
-        generateDocument(entity, locale, PageSize.A4);
-    }
 
     @Override
     protected void buildPdfContent(final Document document, final Entity materialRequirement, final Locale locale)
@@ -143,14 +135,7 @@ public final class MaterialRequirementPdfService extends PdfDocumentService {
                 translationService.translate("materialRequirements.materialRequirement.report.panel.mrpAlgorithm", locale),
                 translationService.translate("materialRequirements.materialRequirement.mrpAlgorithm.value."
                         + materialRequirement.getStringField(MaterialRequirementFields.MRP_ALGORITHM), locale));
-        Entity stockLevelLocation = materialRequirement.getBelongsToField(MaterialRequirementFields.STOCK_LEVEL_LOCATION);
-        if (stockLevelLocation != null) {
-            pdfHelper.addTableCellAsOneColumnTable(panelTable,
-                    translationService.translate("materialRequirements.materialRequirement.report.panel.stockLevelLocationNumber", locale),
-                    stockLevelLocation.getStringField(LocationFields.NUMBER));
-        } else {
-            pdfHelper.addTableCellAsOneColumnTable(panelTable, "", "");
-        }
+        pdfHelper.addTableCellAsOneColumnTable(panelTable, "", "");
 
         panelTable.setSpacingAfter(20);
         panelTable.setSpacingBefore(20);
@@ -349,11 +334,7 @@ public final class MaterialRequirementPdfService extends PdfDocumentService {
                 }
             }
 
-            List<Entity> substituteComponents = replacements.get(materialRequirementProduct);
-
-            if (substituteComponents == null) {
-                table.getDefaultCell().enableBorderSide(PdfCell.BOTTOM);
-            }
+            table.getDefaultCell().enableBorderSide(PdfCell.BOTTOM);
             table.getDefaultCell().enableBorderSide(PdfCell.TOP);
 
             if (Objects.isNull(actualProduct) || !actualProduct.equals(productNumber)) {
@@ -396,38 +377,6 @@ public final class MaterialRequirementPdfService extends PdfDocumentService {
                 table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
                 table.addCell(new Phrase(numberService.format(batchStock), FontUtils.getDejavuBold7Dark()));
                 table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_LEFT);
-            }
-
-            if (substituteComponents != null) {
-                table.getDefaultCell().disableBorderSide(PdfCell.BOTTOM);
-                table.getDefaultCell().disableBorderSide(PdfCell.TOP);
-                for (Entity substituteComponent : substituteComponents) {
-                    if (includeWarehouse) {
-                        table.addCell(new Phrase("", FontUtils.getDejavuRegular7Light()));
-                    }
-
-                    if (includeStartDateOrder) {
-                        table.addCell(new Phrase("", FontUtils.getDejavuRegular7Light()));
-                    }
-
-                    product = substituteComponent.getBelongsToField(MaterialRequirementProductFields.PRODUCT);
-                    table.addCell(new Phrase("- " + product.getStringField(ProductFields.NUMBER), FontUtils.getDejavuRegular7Light()));
-                    table.addCell(new Phrase(product.getStringField(ProductFields.NAME), FontUtils.getDejavuRegular7Light()));
-                    table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
-                    table.addCell(new Phrase(numberService.format(substituteComponent.getDecimalField(MaterialRequirementProductFields.QUANTITY)), FontUtils.getDejavuRegular7Light()));
-                    table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_LEFT);
-                    table.addCell(new Phrase(product.getStringField(ProductFields.UNIT), FontUtils.getDejavuRegular7Light()));
-
-                    if (showCurrentStockLevel) {
-                        table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
-                        table.addCell(new Phrase(numberService.format(substituteComponent.getDecimalField(MaterialRequirementProductFields.CURRENT_STOCK)), FontUtils.getDejavuRegular7Light()));
-                        table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_LEFT);
-                    }
-                    table.addCell(new Phrase("", FontUtils.getDejavuRegular7Light()));
-                    if (showCurrentStockLevel) {
-                        table.addCell(new Phrase("", FontUtils.getDejavuRegular7Light()));
-                    }
-                }
             }
         }
 

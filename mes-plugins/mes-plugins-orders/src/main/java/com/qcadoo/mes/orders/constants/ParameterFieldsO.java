@@ -57,6 +57,8 @@ public final class ParameterFieldsO {
 
     public static final String ALLOW_QUANTITY_CHANGE_IN_ACCEPTED_ORDER = "allowQuantityChangeInAcceptedOrder";
 
+    public static final String ALLOW_TECHNOLOGY_TREE_CHANGE_INPENDING_ORDER = "allowTechnologyTreeChangeInPendingOrder";
+
     public static final String REASON_NEEDED_WHEN_CORRECTING_THE_REQUESTED_VOLUME = "reasonNeededWhenCorrectingTheRequestedVolume";
 
     public static final String ORDER_CATEGORY_COLORS = "orderCategoryColors";
@@ -101,6 +103,8 @@ public final class ParameterFieldsO {
 
     public static final String INCLUDE_TPZ_S = "includeTpzS";
 
+    public static final String SKIP_FINISHED_TASKS = "skipFinishedTasks";
+
     public static final String PROMPT_DEFAULT_LINE_FROM_TECHNOLOGY = "promptDefaultLineFromTechnology";
 
     public static final String CAN_CHANGE_PROD_LINE_FOR_ACCEPTED_ORDERS = "canChangeProdLineForAcceptedOrders";
@@ -111,7 +115,4 @@ public final class ParameterFieldsO {
 
     public static final String DEADLINE_FOR_ORDER_EARLIER_THAN_DELIVERY_DATE = "deadlineForOrderEarlierThanDeliveryDate";
 
-    public static final String ORDER_DIMENSION_CONTROL_OF_PRODUCTS = "orderDimensionControlOfProducts";
-
-    public static final String ORDER_DIMENSION_CONTROL_ATTRIBUTES = "orderDimensionControlAttributes";
 }

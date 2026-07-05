@@ -578,10 +578,6 @@ function createOrderDiv(order) {
     (order.orderCategory ? '<span class="font-weight-bold">' + QCD.translate("basic.dashboard.orders.orderCategory.label") + ':</span> ' + order.orderCategory + '<br/>' : '') +
     (order.dashboardShowDescription ? '<span class="font-weight-bold">' + QCD.translate("basic.dashboard.orders.description.label") + ':</span> ' + (order.description ? order.description : '') + '<br/>' : '');
 
-    if (QCD.showProductionTrackingStaff === 'true') {
-        orderDiv = orderDiv + ((order.state == "03inProgress" || order.state == "04completed") ? '<span class="font-weight-bold">' + QCD.translate("basic.dashboard.orders.productionTrackingStaff.label") + ':</span> ' + (order.productionTrackingStaff ? order.productionTrackingStaff : '') + '<br/>' : '');
-    }
-
     if (QCD.enableRegistrationTerminalOnDashboard === 'true') {
         orderDiv = orderDiv +((order.state == "03inProgress" && order.typeOfProductionRecording == "02cumulated") ? '<a href="#" class="badge badge-success float-right" onclick="goToProductionTrackingTerminal(' + order.id + ', null, null)">' + QCD.translate("basic.dashboard.orders.showTerminal.label") + '</a>' : '');
     }
@@ -642,10 +638,6 @@ function createOperationalTaskDiv(operationalTasksType, operationalTask) {
     (operationalTask.staffName ? '<span class="font-weight-bold">' + QCD.translate("basic.dashboard.operationalTasks.staffName.label") + ':</span> ' + operationalTask.staffName + '<br/>' : '') +
     (operationalTask.dashboardShowDescription ? '<span class="font-weight-bold">' + QCD.translate("basic.dashboard.operationalTasks.description.label") + ':</span> ' + (operationalTask.description ? operationalTask.description : '') + '<br/>' : '');
 
-    if (QCD.showProductionTrackingStaff === 'true') {
-        opTaskDiv = opTaskDiv + ((operationalTask.type == "02executionOperationInOrder" && operationalTasksType != 'operationalTasksPending') ? '<span class="font-weight-bold">' + QCD.translate("basic.dashboard.operationalTasks.productionTrackingStaff.label") + ':</span> ' + (operationalTask.productionTrackingStaff ? operationalTask.productionTrackingStaff : '') + '<br/>' : '');
-    }
-
     if (QCD.enableRegistrationTerminalOnDashboard === 'true') {
         opTaskDiv = opTaskDiv + ((operationalTask.type == "02executionOperationInOrder" && operationalTask.state == "02started") ? '<a href="#" class="badge badge-success float-right" onclick="goToProductionTrackingTerminal(null, ' + operationalTask.id + ', ' + (operationalTask.workstationNumber ? '\'' + operationalTask.workstationNumber + '\'' : null) + ')">' + QCD.translate("basic.dashboard.operationalTasks.showTerminal.label") + '</a>' : '');
     }
@@ -658,7 +650,7 @@ function createOperationalTaskDiv(operationalTasksType, operationalTask) {
 }
 
 function filterKanban(value) {
-    let keys = [ "masterOrderNumber", "orderNumber", "number", "description", "orderCategory", "productionLineNumber", "staffName", "workstationNumber", "productNumber", "orderProductNumber", "companyName", "productionTrackingStaff" ];
+    let keys = [ "masterOrderNumber", "orderNumber", "number", "description", "orderCategory", "productionLineNumber", "staffName", "workstationNumber", "productNumber", "orderProductNumber", "companyName" ];
 
     let results = QCD.dashboardContext.getItems().filter(item => Object.keys(item).some(key => keys.includes(key) && (item[key] != null) && item[key].toString().toLowerCase().includes(value.toLowerCase())));
 
