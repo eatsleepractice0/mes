@@ -72,7 +72,7 @@
 
 ## 3. 项目结构
 
-前后端为**两个独立项目**，可放在同一父目录下并列管理，但各自拥有独立的依赖、构建与部署流程。
+前后端为**两个独立项目**，可放在同一父目录下并列管理，但各自拥有独立的依赖与构建流程。
 
 ```
 projects/                    # 本地开发父目录（可选，非 monorepo）
@@ -81,7 +81,6 @@ projects/                    # 本地开发父目录（可选，非 monorepo）
 │   ├── tsconfig.json
 │   ├── drizzle.config.ts
 │   ├── .env.example
-│   ├── Dockerfile
 │   ├── README.md
 │   └── src/
 │       ├── index.ts
@@ -98,8 +97,6 @@ projects/                    # 本地开发父目录（可选，非 monorepo）
     ├── tsconfig.json
     ├── vite.config.ts
     ├── .env.example
-    ├── Dockerfile
-    ├── nginx.conf           # 生产静态托管
     ├── README.md
     └── src/
         ├── routes/
@@ -128,7 +125,6 @@ mes/                         # 原 Java MES 仓库（基线参考 + 文档）
 | 开发启动 | `pnpm dev`（端口 3001） | `pnpm dev`（端口 5173） |
 | 构建 | `pnpm build` → `dist/` | `pnpm build` → `dist/` |
 | 环境变量 | `DATABASE_URL`, `PORT`, `CORS_ORIGIN` | `VITE_API_BASE_URL` |
-| 部署 | 独立 Node 容器 / 进程 | 独立 Nginx 静态容器 |
 
 > 类型定义在前端项目内维护，后端通过 zod schema 校验；**不共享 npm 包**，避免 monorepo 依赖。
 
@@ -529,12 +525,6 @@ cd mes-api && pnpm install && pnpm dev
 # 终端 2 — 前端
 cd mes-web && pnpm install && pnpm dev
 ```
-
-### 9.5 生产部署
-
-- **mes-api**: 构建后 `node dist/index.js`，或 Docker 独立镜像
-- **mes-web**: `pnpm build` 产出静态文件，由 Nginx 托管；`VITE_API_BASE_URL=https://api.example.com`
-- 可选：在部署层用 `docker-compose.yml` 编排两个独立服务（非 monorepo，仅编排）
 
 ---
 
